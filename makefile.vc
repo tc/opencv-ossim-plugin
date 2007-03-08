@@ -1,0 +1,45 @@
+
+###
+# $Id: makefile.vc,v 1.4 2005/09/08 17:24:11 gpotts Exp $
+#
+# Windows nmake make file.  This code should compile with the Microsoft .NET
+# compiler.
+# 
+# Currently for a typical build on windows you would do the following.
+# - cd src packages
+# - untar the gdal package
+# - cd gdal and edit the nmake.opt file appropriately.
+# - cd back to the ossim top and edit its nmake.opt file appropriately.
+# - nmake /f makefile
+# - nmake /f makefile install (if you want the apps in the bin directory.
+#
+# NOTE:  If you make shared apps it's handy to copy the ossim.dll to the bin
+#        directory. 
+###
+
+!INCLUDE ..\nmake.opt
+
+OPENCV_DIR = C:\Archivos de programa\OpenCV
+OPENCV_LIBDIR = $(OPENCV_DIR)\lib
+OPENCV_LIB = "$(OPENCV_LIBDIR)\cv.lib" "$(OPENCV_LIBDIR)\cvaux.lib" "$(OPENCV_LIBDIR)\cxcore.lib" "$(OPENCV_LIBDIR)\highgui.lib"
+LINK	=	link
+LFLAGS	=	/NOLOGO /DELAYLOAD:comdlg32.dll /DELAYLOAD:oleaut32.dll /DELAYLOAD:winmm.dll /DELAYLOAD:wsock32.dll /DELAYLOAD:winspool.dll /SUBSYSTEM:WINDOWS /LIBPATH:"$(QTDIR)\lib" /LIBPATH:"$(OSSIM_QT_HOME)\lib" /LIBPATH:"$(OSSIM_HOME)\lib"
+LIBS	=	 "qt-mtnc321.lib" "qtmain.lib" "kernel32.lib" "user32.lib" "gdi32.lib" "comdlg32.lib" "advapi32.lib" "shell32.lib" "ole32.lib" "oleaut32.lib" "uuid.lib" "imm32.lib" "winmm.lib" "wsock32.lib" "winspool.lib" "delayimp.lib" "$(OSSIM_QT_HOME)\lib\ossim_qt.lib" "$(OSSIM_HOME)\lib\ossim\ossim.lib" "opengl32.lib" "glu32.lib" "opengl32.lib" "glu32.lib" $(OPENCV_LIB)
+
+OBJ	= 	ossimOpenCVImageSourceFactory.obj \
+		ossimOpenCVPluginInit.obj \
+		ossimOpenCVPyrSegmentation.obj \
+		ossimOpenCVSobelFilter.obj \
+		ossimOpenCVThresholdFilter.obj \
+		ossimOpenCVDilateFilter.obj \
+		ossimOpenCVErodeFilter.obj \
+		ossimOpenCVLogPolarFilter.obj \
+		ossimOpenCVSmoothFilter.obj
+		
+default:	$(OBJ)
+	link /VERSION:1.5.6 /DLL /OUT:"$(LIB_DIR)\opencvplugin.dll" /IMPLIB:"$(LIB_DIR)\argongraplugin.lib" /NOLOGO $(OBJ) /LIBPATH:$(LIB_DIR) $(GDAL_LIBS) $(JPEG_LIB) odbc32.lib "kernel32.lib" "user32.lib" "gdi32.lib" "comdlg32.lib" "advapi32.lib" "shell32.lib" "ole32.lib" "oleaut32.lib" "uuid.lib" "imm32.lib" "winmm.lib" "wsock32.lib" "winspool.lib" "delayimp.lib" $(GEOTIFF_LIB) $(TIFF_LIB) "$(OSSIM_HOME)\lib\ossim\ossim.lib" $(GDAL_LIBS) $(JPEG_LIB) $(OPENCV_LIB)
+  
+
+clean:
+	$(RM) *.obj
+	$(RM) lib\*.*
