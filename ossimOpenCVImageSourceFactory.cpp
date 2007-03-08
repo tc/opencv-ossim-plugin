@@ -14,6 +14,7 @@
 #include "ossimOpenCVThresholdFilter.h"
 #include "ossimOpenCVPyrSegmentation.h"
 #include "ossimOpenCVSobelFilter.h"
+#include "ossimOpenCVCannyFilter.h"
 #include "ossimOpenCVErodeFilter.h"
 #include "ossimOpenCVDilateFilter.h"
 #include "ossimOpenCVSmoothFilter.h"
@@ -58,6 +59,10 @@ ossimObject* ossimOpenCVImageSourceFactory::createObject(const ossimString& name
    else if(name == STATIC_TYPE_NAME(ossimOpenCVSobelFilter))
    {
       return new ossimOpenCVSobelFilter;
+   }
+   else if(name == STATIC_TYPE_NAME(ossimOpenCVCannyFilter))
+   {
+      return new ossimOpenCVCannyFilter;
    }
    else if(name == STATIC_TYPE_NAME(ossimOpenCVDilateFilter))
    {
@@ -129,6 +134,7 @@ void ossimOpenCVImageSourceFactory::getTypeNameList(std::vector<ossimString>& ty
    typeList.push_back(STATIC_TYPE_NAME(ossimOpenCVThresholdFilter));
    typeList.push_back(STATIC_TYPE_NAME(ossimOpenCVPyrSegmentation));
    typeList.push_back(STATIC_TYPE_NAME(ossimOpenCVSobelFilter));
+   typeList.push_back(STATIC_TYPE_NAME(ossimOpenCVCannyFilter));
    typeList.push_back(STATIC_TYPE_NAME(ossimOpenCVDilateFilter));
    typeList.push_back(STATIC_TYPE_NAME(ossimOpenCVErodeFilter));
    typeList.push_back(STATIC_TYPE_NAME(ossimOpenCVSmoothFilter));
