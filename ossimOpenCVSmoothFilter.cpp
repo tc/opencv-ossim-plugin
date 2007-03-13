@@ -35,7 +35,12 @@ RTTI_DEF1(ossimOpenCVSmoothFilter, "ossimOpenCVSmoothFilter", ossimImageSourceFi
 
 ossimOpenCVSmoothFilter::ossimOpenCVSmoothFilter(ossimObject* owner)
    :ossimImageSourceFilter(owner),
-    theTile(NULL)
+    theTile(NULL),
+	param1(3),
+	param2(3),
+	param3(0),
+	param4(0)
+
 {
 }
 
@@ -124,20 +129,24 @@ bool ossimOpenCVSmoothFilter::saveState(ossimKeywordlist& kwl,
                                      const char* prefix)const
 {
    ossimImageSourceFilter::saveState(kwl, prefix);
-/*
+
    kwl.add(prefix,
-           "center_x",
-           thecenter_x,
+           "param_1",
+           param1,
            true);
    kwl.add(prefix,
-           "center_y",
-           thecenter_y,
+           "param_2",
+           param2,
            true);
    kwl.add(prefix,
-           "M",
-           theM,
+           "param_3",
+           param3,
            true);
-   */
+   
+   kwl.add(prefix,
+           "param_4",
+           param4,
+           true);
    return true;
 }
 
@@ -145,22 +154,27 @@ bool ossimOpenCVSmoothFilter::loadState(const ossimKeywordlist& kwl,
                                      const char* prefix)
 {
    ossimImageSourceFilter::loadState(kwl, prefix);
-/*
-   const char* lookup = kwl.find(prefix, "center_x");
+
+   const char* lookup = kwl.find(prefix, "param_1");
    if(lookup)
    {
-      thecenter_x = ossimString(lookup).toDouble();
+      param1 = ossimString(lookup).toInt();
    }
-   lookup = kwl.find(prefix, "center_y");
+   lookup = kwl.find(prefix, "param_2");
    if(lookup)
    {
-      thecenter_y = ossimString(lookup).toDouble();
+      param2 = ossimString(lookup).toInt();
    }
-   lookup = kwl.find(prefix, "M");
+   lookup = kwl.find(prefix, "param_3");
    if(lookup)
    {
-      theM = ossimString(lookup).toDouble();
-   }*/
+      param3 = ossimString(lookup).toDouble();
+   }
+   lookup = kwl.find(prefix, "param_4");
+   if(lookup)
+   {
+      param4 = ossimString(lookup).toDouble();
+   }
    return true;
 }
 
@@ -180,8 +194,9 @@ void ossimOpenCVSmoothFilter::runUcharTransformation(ossimImageData* tile)
    bandDest = static_cast< char*>(theTile->getBuf());
    output->imageData=bandDest;
 
-cvSmooth( input, output );
-
-
+	//cvSmooth( input, output, CV_MEDIAN,
+      //         param1, param2, param3,param4 );
+ 	cvSmooth( input, output, CV_MEDIAN, 9,9);//, param3,param4 );
+ 
    theTile->validate();
 }

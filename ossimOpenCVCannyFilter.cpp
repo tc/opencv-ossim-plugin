@@ -36,16 +36,16 @@ RTTI_DEF1(ossimOpenCVCannyFilter, "ossimOpenCVCannyFilter", ossimImageSourceFilt
 ossimOpenCVCannyFilter::ossimOpenCVCannyFilter(ossimObject* owner)
    :ossimImageSourceFilter(owner),
     theTile(NULL),
-    theC1(1.0/3.0),
-    theC2(1.0/3.0),
-    theC3(1.0/3.0)
+    theC1(1.0),
+    theC2(3.0),
+    theC3(3)
 {
 }
 
 ossimOpenCVCannyFilter::ossimOpenCVCannyFilter(ossimImageSource* inputSource,
                                            double c1,
                                            double c2,
-                                           double c3)
+                                           int c3)
    : ossimImageSourceFilter(NULL, inputSource),
      theTile(NULL),
      theC1(c1),
@@ -58,7 +58,7 @@ ossimOpenCVCannyFilter::ossimOpenCVCannyFilter(ossimObject* owner,
                                            ossimImageSource* inputSource,
                                            double c1,
                                            double c2,
-                                           double c3)
+                                           int c3)
    : ossimImageSourceFilter(owner, inputSource),
      theTile(NULL),
      theC1(c1),
@@ -187,7 +187,7 @@ bool ossimOpenCVCannyFilter::loadState(const ossimKeywordlist& kwl,
    lookup = kwl.find(prefix, "c3");
    if(lookup)
    {
-      theC3 = ossimString(lookup).toDouble();
+      theC3 = ossimString(lookup).toInt();
    }
    return true;
 }
@@ -208,7 +208,8 @@ void ossimOpenCVCannyFilter::runUcharTransformation(ossimImageData* tile)
    bandDest = static_cast< char*>(theTile->getBuf());
    output->imageData=bandDest;
 
-        cvCanny( input,output, 50, 200, 3 );
+        //cvCanny( input,output, theC1,theC2, theC3 );
+cvCanny( input,output, 1,1,3 );
 
    theTile->validate();
 }

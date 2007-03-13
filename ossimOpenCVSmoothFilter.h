@@ -18,7 +18,7 @@ public:
    virtual ~ossimOpenCVSmoothFilter();
    ossimString getShortName()const
       {
-         return ossimString("Eroe");
+         return ossimString("Smooth");
       }
    
    ossimString getLongName()const
@@ -43,6 +43,10 @@ public:
     */
    virtual bool loadState(const ossimKeywordlist& kwl,
                           const char* prefix=0);
+   int param1;
+   int param2;
+   double param3;
+   double param4;
 
 protected:
    ossimRefPtr<ossimImageData> theBlankTile;

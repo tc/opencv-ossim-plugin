@@ -15,12 +15,12 @@ public:
    ossimOpenCVCannyFilter(ossimImageSource* inputSource,
                         double c1 = 1.0/3.0,
                         double c2 = 1.0/3.0,
-                        double c3 = 1.0/3.0);
+                        int c3 = 3);
    ossimOpenCVCannyFilter(ossimObject* owner,
                         ossimImageSource* inputSource,
                         double c1 = 1.0/3.0,
                         double c2 = 1.0/3.0,
-                        double c3 = 1.0/3.0);
+                        int c3 = 3);
    virtual ~ossimOpenCVCannyFilter();
    ossimString getShortName()const
       {
@@ -56,7 +56,7 @@ protected:
    void runUcharTransformation(ossimImageData* tile);
    double theC1;
    double theC2;
-   double theC3;
+   int theC3;
 
 TYPE_DATA
 };
