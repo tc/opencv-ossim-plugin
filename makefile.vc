@@ -36,6 +36,7 @@ OBJ	= 	ossimOpenCVImageSourceFactory.obj \
 		ossimOpenCVDilateFilter.obj \
 		ossimOpenCVErodeFilter.obj \
 		ossimOpenCVLogPolarFilter.obj \
+		ossimOpenCVGoodFeaturesToTrack.obj \
 		ossimOpenCVSmoothFilter.obj
 		
 default:	$(OBJ)

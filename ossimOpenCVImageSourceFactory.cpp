@@ -20,6 +20,7 @@
 #include "ossimOpenCVSmoothFilter.h"
 #include "ossimOpenCVLogPolarFilter.h"
 #include "ossimOpenCVSquaresFilter.h"
+#include "ossimOpenCVGoodFeaturesToTrack.h"
 #include <ossim/base/ossimKeywordNames.h>
 #include <ossim/base/ossimObjectFactoryRegistry.h>
 #include <ossim/base/ossimTrace.h>
@@ -85,6 +86,10 @@ ossimObject* ossimOpenCVImageSourceFactory::createObject(const ossimString& name
    {
       return new ossimOpenCVLogPolarFilter;
    }
+   else if(name == STATIC_TYPE_NAME(ossimOpenCVGoodFeaturesToTrack))
+   {
+      return new ossimOpenCVGoodFeaturesToTrack;
+   }
 
    return NULL;
 }
@@ -145,6 +150,7 @@ void ossimOpenCVImageSourceFactory::getTypeNameList(std::vector<ossimString>& ty
    typeList.push_back(STATIC_TYPE_NAME(ossimOpenCVErodeFilter));
    typeList.push_back(STATIC_TYPE_NAME(ossimOpenCVSmoothFilter));
    typeList.push_back(STATIC_TYPE_NAME(ossimOpenCVLogPolarFilter));
+   typeList.push_back(STATIC_TYPE_NAME(ossimOpenCVGoodFeaturesToTrack));
    /*typeList.push_back(STATIC_TYPE_NAME(ossimBlendMosaic));*/
 }
  
