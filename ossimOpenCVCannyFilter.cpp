@@ -209,7 +209,7 @@ void ossimOpenCVCannyFilter::runUcharTransformation(ossimImageData* tile)
    output->imageData=bandDest;
 
         //cvCanny( input,output, theC1,theC2, theC3 );
-cvCanny( input,output, 1,1,3 );
+    cvCanny( input,output, 0.01,0.01,3 );
 
    theTile->validate();
 }

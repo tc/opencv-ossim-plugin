@@ -13,13 +13,13 @@ class ossimOpenCVGoodFeaturesToTrack : public ossimImageSourceFilter //ossimImag
 public:
    ossimOpenCVGoodFeaturesToTrack(ossimObject* owner=NULL);
    ossimOpenCVGoodFeaturesToTrack(ossimImageSource* inputSource,
-                        double c1 = 1.0/3.0,
-                        double c2 = 1.0/3.0,
+                        double c1 = 0.1,
+                        double c2 = 10,
                         double c3 = 1.0/3.0);
    ossimOpenCVGoodFeaturesToTrack(ossimObject* owner,
                         ossimImageSource* inputSource,
-                        double c1 = 1.0/3.0,
-                        double c2 = 1.0/3.0,
+                        double c1 = 0.1,
+                        double c2 = 10,
                         double c3 = 1.0/3.0);
    virtual ~ossimOpenCVGoodFeaturesToTrack();
    ossimString getShortName()const

@@ -30,6 +30,7 @@ OBJ	= 	ossimOpenCVImageSourceFactory.obj \
 		ossimOpenCVPluginInit.obj \
 		ossimOpenCVPyrSegmentation.obj \
 		ossimOpenCVSobelFilter.obj \
+		ossimOpenCVRegisterFilter.obj \
 		ossimOpenCVSquaresFilter.obj \
 		ossimOpenCVCannyFilter.obj \
 		ossimOpenCVThresholdFilter.obj \
