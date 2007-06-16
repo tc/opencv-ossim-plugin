@@ -13,14 +13,14 @@ class ossimOpenCVThresholdFilter : public ossimImageSourceFilter
 public:
    ossimOpenCVThresholdFilter(ossimObject* owner=NULL);
    ossimOpenCVThresholdFilter(ossimImageSource* inputSource,
-                        double c1 = 1.0/3.0,
-                        double c2 = 1.0/3.0,
-                        double c3 = 1.0/3.0);
+                        double t1 = 0.0,
+                        double t2 = 0.0,
+                        double t3 = 0.0);
    ossimOpenCVThresholdFilter(ossimObject* owner,
                         ossimImageSource* inputSource,
-                        double c1 = 1.0/3.0,
-                        double c2 = 1.0/3.0,
-                        double c3 = 1.0/3.0);
+                        double t1 = 0.0,
+                        double t2 = 0.0,
+                        double t3 = 0.0);
    virtual ~ossimOpenCVThresholdFilter();
    ossimString getShortName()const
       {
@@ -50,13 +50,20 @@ public:
    virtual bool loadState(const ossimKeywordlist& kwl,
                           const char* prefix=0);
 
+   /*
+   * Methods to expose thresholds for adjustment through the GUI
+   */
+   virtual void setProperty(ossimRefPtr<ossimProperty> property);
+   virtual ossimRefPtr<ossimProperty> getProperty(const ossimString& name)const;
+   virtual void getPropertyNames(std::vector<ossimString>& propertyNames)const;
+
 protected:
    ossimRefPtr<ossimImageData> theBlankTile;
    ossimRefPtr<ossimImageData> theTile;
    void runUcharTransformation(ossimImageData* tile);
-   double theC1;
-   double theC2;
-   double theC3;
+   double theThresh1;
+   double theThresh2;
+   double theThresh3;
 
 TYPE_DATA
 };

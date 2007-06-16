@@ -30,40 +30,41 @@
 #include <ossim/imaging/ossimImageSourceFactoryBase.h>
 #include <ossim/imaging/ossimImageSourceFactoryRegistry.h>
 #include <ossim/base/ossimRefPtr.h>
+#include <ossim/base/ossimNumericProperty.h>
 
 RTTI_DEF1(ossimOpenCVThresholdFilter, "ossimOpenCVThresholdFilter", ossimImageSourceFilter)
 
 ossimOpenCVThresholdFilter::ossimOpenCVThresholdFilter(ossimObject* owner)
-   :ossimImageSourceFilter(owner),
-    theTile(NULL),
-    theC1(1.0/3.0),
-    theC2(1.0/3.0),
-    theC3(1.0/3.0)
+:ossimImageSourceFilter(owner),
+theTile(NULL),
+theThresh1(0.0),
+theThresh2(0.0),
+theThresh3(0.0)
 {
 }
 
 ossimOpenCVThresholdFilter::ossimOpenCVThresholdFilter(ossimImageSource* inputSource,
-                                           double c1,
-                                           double c2,
-                                           double c3)
-   : ossimImageSourceFilter(NULL, inputSource),
-     theTile(NULL),
-     theC1(c1),
-     theC2(c2),
-     theC3(c3)
+													   double t1,
+													   double t2,
+													   double t3)
+													   : ossimImageSourceFilter(NULL, inputSource),
+													   theTile(NULL),
+													   theThresh1(t1),
+													   theThresh2(t2),
+													   theThresh3(t3)
 {
 }
 
 ossimOpenCVThresholdFilter::ossimOpenCVThresholdFilter(ossimObject* owner,
-                                           ossimImageSource* inputSource,
-                                           double c1,
-                                           double c2,
-                                           double c3)
-   : ossimImageSourceFilter(owner, inputSource),
-     theTile(NULL),
-     theC1(c1),
-     theC2(c2),
-     theC3(c3)
+													   ossimImageSource* inputSource,
+													   double t1,
+													   double t2,
+													   double t3)
+													   : ossimImageSourceFilter(owner, inputSource),
+													   theTile(NULL),
+													   theThresh1(t1),
+													   theThresh2(t2),
+													   theThresh3(t3)
 {
 }
 
@@ -72,177 +73,237 @@ ossimOpenCVThresholdFilter::~ossimOpenCVThresholdFilter()
 }
 
 ossimRefPtr<ossimImageData> ossimOpenCVThresholdFilter::getTile(const ossimIrect& tileRect,
-                                                                ossim_uint32 resLevel)
+																ossim_uint32 resLevel)
 {
-   if(!isSourceEnabled())
-   {
-      return ossimImageSourceFilter::getTile(tileRect,
-                                             resLevel);
-   }
-   long w     = tileRect.width();
-   long h     = tileRect.height();
+	if(!isSourceEnabled())
+	{
+		return ossimImageSourceFilter::getTile(tileRect,
+			resLevel);
+	}
+	long w     = tileRect.width();
+	long h     = tileRect.height();
 
-   
-   if(!theTile.valid()) initialize();
-   if(!theTile.valid()) return 0;
-   
-   if(!theTile.valid()) return 0;
-   
-   ossimRefPtr<ossimImageData> data = 0;
-   if(theInputConnection)
-   {
-      data  = theInputConnection->getTile(tileRect, resLevel);
-   }
-   else
-   {
-      return 0;
-   }
 
-   if(!data.valid()) return 0;
-   if(data->getDataObjectStatus() == OSSIM_NULL ||
-      data->getDataObjectStatus() == OSSIM_EMPTY)
-   {
-      return 0;
-   }
+	if(!theTile.valid()) initialize();
+	if(!theTile.valid()) return 0;
 
-   theTile->setImageRectangle(tileRect);
-   theTile->makeBlank();
-   
-   theTile->setOrigin(tileRect.ul());
-   runUcharTransformation(data.get());
-   
-   return theTile;
-   
+	if(!theTile.valid()) return 0;
+
+	ossimRefPtr<ossimImageData> data = 0;
+	if(theInputConnection)
+	{
+		data  = theInputConnection->getTile(tileRect, resLevel);
+	}
+	else
+	{
+		return 0;
+	}
+
+	if(!data.valid()) return 0;
+	if(data->getDataObjectStatus() == OSSIM_NULL ||
+		data->getDataObjectStatus() == OSSIM_EMPTY)
+	{
+		return 0;
+	}
+
+	theTile->setImageRectangle(tileRect);
+	theTile->makeBlank();
+
+	theTile->setOrigin(tileRect.ul());
+	runUcharTransformation(data.get());
+
+	return theTile;
+
 }
 
 void ossimOpenCVThresholdFilter::initialize()
 {
-   if(theInputConnection)
-   {
-      theTile = 0;
-      
-      theTile = new ossimU8ImageData(this,
-                                     1,
-                                     theInputConnection->getTileWidth(),
-                                     theInputConnection->getTileHeight());  
-      theTile->initialize();
-   }
+	if(theInputConnection)
+	{
+		theTile = 0;
+
+		theTile = new ossimU8ImageData(this,
+			1,
+			theInputConnection->getTileWidth(),
+			theInputConnection->getTileHeight());  
+		theTile->initialize();
+	}
 }
 
 ossimScalarType ossimOpenCVThresholdFilter::getOutputScalarType() const
 {
-   if(!isSourceEnabled())
-   {
-      return ossimImageSourceFilter::getOutputScalarType();
-   }
-   
-   return OSSIM_UCHAR;
+	if(!isSourceEnabled())
+	{
+		return ossimImageSourceFilter::getOutputScalarType();
+	}
+
+	return OSSIM_UCHAR;
 }
 
 ossim_uint32 ossimOpenCVThresholdFilter::getNumberOfOutputBands() const
 {
-   if(!isSourceEnabled())
-   {
-      return ossimImageSourceFilter::getNumberOfOutputBands();
-   }
-   return 1;
+	if(!isSourceEnabled())
+	{
+		return ossimImageSourceFilter::getNumberOfOutputBands();
+	}
+	return 1;
 }
 
 bool ossimOpenCVThresholdFilter::saveState(ossimKeywordlist& kwl,
-                                     const char* prefix)const
+										   const char* prefix)const
 {
-   ossimImageSourceFilter::saveState(kwl, prefix);
+	ossimImageSourceFilter::saveState(kwl, prefix);
 
-   kwl.add(prefix,
-           "c1",
-           theC1,
-           true);
-   kwl.add(prefix,
-           "c2",
-           theC2,
-           true);
-   kwl.add(prefix,
-           "c3",
-           theC3,
-           true);
-   
-   return true;
+	kwl.add(prefix,
+		"t1",
+		theThresh1,
+		true);
+	kwl.add(prefix,
+		"t2",
+		theThresh2,
+		true);
+	kwl.add(prefix,
+		"t3",
+		theThresh3,
+		true);
+
+	return true;
 }
 
 bool ossimOpenCVThresholdFilter::loadState(const ossimKeywordlist& kwl,
-                                     const char* prefix)
+										   const char* prefix)
 {
-   ossimImageSourceFilter::loadState(kwl, prefix);
+	ossimImageSourceFilter::loadState(kwl, prefix);
 
-   const char* lookup = kwl.find(prefix, "c1");
-   if(lookup)
-   {
-      theC1 = ossimString(lookup).toDouble();
-   }
-   lookup = kwl.find(prefix, "c2");
-   if(lookup)
-   {
-      theC2 = ossimString(lookup).toDouble();
-   }
-   lookup = kwl.find(prefix, "c3");
-   if(lookup)
-   {
-      theC3 = ossimString(lookup).toDouble();
-   }
-   return true;
+	const char* lookup = kwl.find(prefix, "t1");
+	if(lookup)
+	{
+		theThresh1 = ossimString(lookup).toDouble();
+	}
+	lookup = kwl.find(prefix, "t2");
+	if(lookup)
+	{
+		theThresh2 = ossimString(lookup).toDouble();
+	}
+	lookup = kwl.find(prefix, "t3");
+	if(lookup)
+	{
+		theThresh3 = ossimString(lookup).toDouble();
+	}
+	return true;
 }
 
 void ossimOpenCVThresholdFilter::runUcharTransformation(ossimImageData* tile)
 {   
-   IplImage *input;
-   IplImage *output;
+	IplImage *input;
+	IplImage *output;
 
-   input=cvCreateImageHeader(cvSize(tile->getWidth(),tile->getHeight()),8,1);
-   output=cvCreateImageHeader(cvSize(tile->getWidth(),tile->getHeight()),8,1);
-   char* bandSrc[3];//FIXME tile->getNumberOfBands()
-   char* bandDest;
-   
-   if(tile->getNumberOfBands() == 1)
-   {
-      bandSrc[0]  = static_cast< char*>(tile->getBuf(0));
-      bandSrc[1]  = static_cast< char*>(tile->getBuf(0));
-      bandSrc[2]  = static_cast< char*>(tile->getBuf(0));
-   }
-   else if(tile->getNumberOfBands() == 2)
-   {
-      bandSrc[0]  = static_cast< char*>(tile->getBuf(0));
-      bandSrc[1]  = static_cast<char*>(tile->getBuf(1));
-      bandSrc[2]  = static_cast<char*>(tile->getBuf(1));      
-   }
-   else if(tile->getNumberOfBands() == 3)
-   {
-      bandSrc[0]  = static_cast<char*>(tile->getBuf(0));
-      bandSrc[1]  = static_cast<char*>(tile->getBuf(1));
-      bandSrc[2]  = static_cast<char*>(tile->getBuf(2));      
-   }
-   input->imageData=bandSrc[0];
-   bandDest = static_cast< char*>(theTile->getBuf());
-   output->imageData=bandDest;
+	input=cvCreateImageHeader(cvSize(tile->getWidth(),tile->getHeight()),8,1);
+	output=cvCreateImageHeader(cvSize(tile->getWidth(),tile->getHeight()),8,1);
+	char* bandSrc[3];//FIXME tile->getNumberOfBands()
+	char* bandDest;
+	bandDest = static_cast< char*>(theTile->getBuf());
 
-   //long offset;
+	if(tile->getNumberOfBands() == 1)
+	{
+		bandSrc[0]  = static_cast< char*>(tile->getBuf(0));
+		bandSrc[1]  = static_cast< char*>(tile->getBuf(0));
+		bandSrc[2]  = static_cast< char*>(tile->getBuf(0));
+	}
+	else if(tile->getNumberOfBands() == 2)
+	{
+		bandSrc[0]  = static_cast< char*>(tile->getBuf(0));
+		bandSrc[1]  = static_cast<char*>(tile->getBuf(1));
+		bandSrc[2]  = static_cast<char*>(tile->getBuf(1));      
+	}
+	else if(tile->getNumberOfBands() == 3)
+	{
+		bandSrc[0]  = static_cast<char*>(tile->getBuf(0));
+		bandSrc[1]  = static_cast<char*>(tile->getBuf(1));
+		bandSrc[2]  = static_cast<char*>(tile->getBuf(2));      
+	}
+	input->imageData=bandSrc[0];
+	output->imageData=bandDest;
 
-   //long upperBound = tile->getWidth()*tile->getHeight();
+	//long offset;
 
-cvThreshold( input, output, 100, 255, CV_THRESH_BINARY );
+	//long upperBound = tile->getWidth()*tile->getHeight();
 
-   /*for(offset = 0; offset < upperBound; ++offset)
-   {
-      long value;
-      
-      value = irint(theC1*(bandSrc[0][offset]) +
-                    theC2*(bandSrc[1][offset]) +
-                    theC3*(bandSrc[2][offset]));
-      
-      value = value<255?value:255;
-      value = value>0?value:0;
+	cvThreshold( input, output, (unsigned char)theThresh1, 255, CV_THRESH_BINARY );
 
-      bandDest[offset] = value;
-   }*/
+	/*for(offset = 0; offset < upperBound; ++offset)
+	{
+	long value;
 
-   theTile->validate();
+	value = irint(theC1*(bandSrc[0][offset]) +
+	theC2*(bandSrc[1][offset]) +
+	theC3*(bandSrc[2][offset]));
+
+	value = value<255?value:255;
+	value = value>0?value:0;
+
+	bandDest[offset] = value;
+	}*/
+
+	theTile->validate();
+}
+
+ossimRefPtr<ossimProperty> ossimOpenCVThresholdFilter::getProperty(const ossimString& name)const
+{
+	if(name == "threshold1")
+	{
+		ossimNumericProperty* numeric = new ossimNumericProperty(name,
+			ossimString::toString(theThresh1),
+			0.0, 255.0);
+		numeric->setNumericType(ossimNumericProperty::ossimNumericPropertyType_FLOAT64);
+		numeric->setCacheRefreshBit();
+		return numeric;
+	}
+
+	if(name == "threshold2")
+	{
+		ossimNumericProperty* numeric = new ossimNumericProperty(name,
+			ossimString::toString(theThresh2),
+			0.0, 255.0);
+		numeric->setNumericType(ossimNumericProperty::ossimNumericPropertyType_FLOAT64);
+		numeric->setCacheRefreshBit();
+		return numeric;
+	}
+	if(name == "threshold3")
+	{
+		ossimNumericProperty* numeric = new ossimNumericProperty(name,
+			ossimString::toString(theThresh3),
+			0.0, 255.0);
+		numeric->setNumericType(ossimNumericProperty::ossimNumericPropertyType_FLOAT64);
+		numeric->setCacheRefreshBit();
+		return numeric;
+	}
+	return ossimImageSourceFilter::getProperty(name);
+}
+
+void ossimOpenCVThresholdFilter::getPropertyNames(std::vector<ossimString>& propertyNames)const
+{
+	ossimImageSourceFilter::getPropertyNames(propertyNames);
+	propertyNames.push_back("threshold1");
+	propertyNames.push_back("threshold2");
+	propertyNames.push_back("threshold3");
+}
+
+void ossimOpenCVThresholdFilter::setProperty(ossimRefPtr<ossimProperty> property)
+{
+	if(!property) return;
+	ossimString name = property->getName();
+
+	if(name == "threshold1")
+	{
+		theThresh1 = property->valueToString().toDouble();
+	}
+	if(name == "threshold2")
+	{
+		theThresh2 = property->valueToString().toDouble();
+	}
+	if(name == "threshold3")
+	{
+		theThresh3 = property->valueToString().toDouble();
+	}
 }
