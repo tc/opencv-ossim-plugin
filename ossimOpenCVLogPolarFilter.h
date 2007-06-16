@@ -18,12 +18,12 @@ public:
    virtual ~ossimOpenCVLogPolarFilter();
    ossimString getShortName()const
       {
-         return ossimString("LogPolar");
+         return ossimString("OpenCVLogPolar");
       }
    
    ossimString getLongName()const
       {
-         return ossimString("ossimOpenCVLogPolarFilter");
+         return ossimString("OpenCV LogPolar Filter");
       }
    
    virtual ossimRefPtr<ossimImageData> getTile(const ossimIrect& tileRect, ossim_uint32 resLevel=0);

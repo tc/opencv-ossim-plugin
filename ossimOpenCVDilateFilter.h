@@ -18,12 +18,12 @@ public:
    virtual ~ossimOpenCVDilateFilter();
    ossimString getShortName()const
       {
-         return ossimString("Eroe");
+         return ossimString("OpenCVDilate");
       }
    
    ossimString getLongName()const
       {
-         return ossimString("ossimOpenCVDilateFilter");
+         return ossimString("OpenCV Dilate Filter");
       }
    
    virtual ossimRefPtr<ossimImageData> getTile(const ossimIrect& tileRect, ossim_uint32 resLevel=0);

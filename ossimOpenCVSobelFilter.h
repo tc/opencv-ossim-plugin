@@ -24,12 +24,12 @@ public:
    virtual ~ossimOpenCVSobelFilter();
    ossimString getShortName()const
       {
-         return ossimString("grey");
+         return ossimString("OpenCVSobel");
       }
    
    ossimString getLongName()const
       {
-         return ossimString("rgb to grey scale filter");
+         return ossimString("OpenCV Sobel Filter");
       }
    
    virtual ossimRefPtr<ossimImageData> getTile(const ossimIrect& tileRect, ossim_uint32 resLevel=0);

@@ -18,12 +18,12 @@ public:
    virtual ~ossimOpenCVSmoothFilter();
    ossimString getShortName()const
       {
-         return ossimString("Smooth");
+         return ossimString("OpenCVSmooth");
       }
    
    ossimString getLongName()const
       {
-         return ossimString("ossimOpenCVSmoothFilter");
+         return ossimString("OpenCV Smooth Filter");
       }
    
    virtual ossimRefPtr<ossimImageData> getTile(const ossimIrect& tileRect, ossim_uint32 resLevel=0);

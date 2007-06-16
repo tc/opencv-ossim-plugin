@@ -18,12 +18,12 @@ public:
    virtual ~ossimOpenCVErodeFilter();
    ossimString getShortName()const
       {
-         return ossimString("Eroe");
+         return ossimString("OpenCVErode");
       }
    
    ossimString getLongName()const
       {
-         return ossimString("ossimOpenCVErodeFilter");
+         return ossimString("OpenCV Erosion Filter");
       }
    
    virtual ossimRefPtr<ossimImageData> getTile(const ossimIrect& tileRect, ossim_uint32 resLevel=0);

@@ -24,12 +24,12 @@ public:
    virtual ~ossimOpenCVSquaresFilter();
    ossimString getShortName()const
       {
-         return ossimString("grey");
+         return ossimString("OpenCVSquares");
       }
    
    ossimString getLongName()const
       {
-         return ossimString("rgb to grey scale filter");
+         return ossimString("OpenCV Square Object Detection");
       }
    
    virtual ossimRefPtr<ossimImageData> getTile(const ossimIrect& tileRect, ossim_uint32 resLevel=0);

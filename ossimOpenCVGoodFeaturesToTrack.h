@@ -24,12 +24,12 @@ public:
    virtual ~ossimOpenCVGoodFeaturesToTrack();
    ossimString getShortName()const
       {
-         return ossimString("GoodFeaturesToTrack");
+         return ossimString("OpenCV GoodFeaturesToTrack");
       }
    
    ossimString getLongName()const
       {
-         return ossimString("GoodFeaturesToTrack");
+         return ossimString("OpenCV GoodFeatures Identifier");
       }
    
    virtual ossimRefPtr<ossimImageData> getTile(const ossimIrect& tileRect, ossim_uint32 resLevel=0);
