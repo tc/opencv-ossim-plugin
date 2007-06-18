@@ -30,12 +30,14 @@
 #include <ossim/imaging/ossimImageSourceFactoryBase.h>
 #include <ossim/imaging/ossimImageSourceFactoryRegistry.h>
 #include <ossim/base/ossimRefPtr.h>
+#include <ossim/base/ossimNumericProperty.h>
 
 RTTI_DEF1(ossimOpenCVErodeFilter, "ossimOpenCVErodeFilter", ossimImageSourceFilter)
 
 ossimOpenCVErodeFilter::ossimOpenCVErodeFilter(ossimObject* owner)
    :ossimImageSourceFilter(owner),
-    theTile(NULL)
+    theTile(NULL),
+	theIter(1)
 {
 }
 
@@ -124,11 +126,12 @@ bool ossimOpenCVErodeFilter::saveState(ossimKeywordlist& kwl,
                                      const char* prefix)const
 {
    ossimImageSourceFilter::saveState(kwl, prefix);
-/*
-   kwl.add(prefix,
-           "center_x",
-           thecenter_x,
-           true);
+
+	kwl.add(prefix,
+	"iterations",
+	theIter,
+	true);
+	/*
    kwl.add(prefix,
            "center_y",
            thecenter_y,
@@ -145,12 +148,13 @@ bool ossimOpenCVErodeFilter::loadState(const ossimKeywordlist& kwl,
                                      const char* prefix)
 {
    ossimImageSourceFilter::loadState(kwl, prefix);
-/*
-   const char* lookup = kwl.find(prefix, "center_x");
-   if(lookup)
-   {
-      thecenter_x = ossimString(lookup).toDouble();
-   }
+
+	const char* lookup = kwl.find(prefix, "iterations");
+	if(lookup)
+	{
+		theIter = ossimString(lookup).toInt();
+	}
+	/*
    lookup = kwl.find(prefix, "center_y");
    if(lookup)
    {
@@ -180,8 +184,42 @@ void ossimOpenCVErodeFilter::runUcharTransformation(ossimImageData* tile)
    bandDest = static_cast< char*>(theTile->getBuf());
    output->imageData=bandDest;
 
-cvErode( input, output );
+   cvErode( input, output , NULL, theIter);
 
 
    theTile->validate();
+}
+
+/*
+* Methods to expose thresholds for adjustment through the GUI
+*/
+void ossimOpenCVErodeFilter::setProperty(ossimRefPtr<ossimProperty> property)
+{
+	if(!property) return;
+	ossimString name = property->getName();
+
+	if(name == "iterations")
+	{
+		theIter = property->valueToString().toInt();
+	}
+}
+
+ossimRefPtr<ossimProperty> ossimOpenCVErodeFilter::getProperty(const ossimString& name)const
+{
+	if(name == "iterations")
+	{
+		ossimNumericProperty* numeric = new ossimNumericProperty(name,
+			ossimString::toString(theIter),
+			1, 5);
+		numeric->setNumericType(ossimNumericProperty::ossimNumericPropertyType_INT);
+		numeric->setCacheRefreshBit();
+		return numeric;
+	}
+	return ossimImageSourceFilter::getProperty(name);
+}
+
+void ossimOpenCVErodeFilter::getPropertyNames(std::vector<ossimString>& propertyNames)const
+{
+	ossimImageSourceFilter::getPropertyNames(propertyNames);
+	propertyNames.push_back("iterations");
 }
