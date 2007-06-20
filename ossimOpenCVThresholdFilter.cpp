@@ -39,19 +39,22 @@ ossimOpenCVThresholdFilter::ossimOpenCVThresholdFilter(ossimObject* owner)
 theTile(NULL),
 theThresh1(0.0),
 theThresh2(0.0),
-theThresh3(0.0)
+theThresh3(0.0),
+theType(0)
 {
 }
 
 ossimOpenCVThresholdFilter::ossimOpenCVThresholdFilter(ossimImageSource* inputSource,
 													   double t1,
 													   double t2,
-													   double t3)
+													   double t3,
+                                                       int type)
 													   : ossimImageSourceFilter(NULL, inputSource),
 													   theTile(NULL),
 													   theThresh1(t1),
 													   theThresh2(t2),
-													   theThresh3(t3)
+													   theThresh3(t3),
+													   theType(type)
 {
 }
 
@@ -59,12 +62,14 @@ ossimOpenCVThresholdFilter::ossimOpenCVThresholdFilter(ossimObject* owner,
 													   ossimImageSource* inputSource,
 													   double t1,
 													   double t2,
-													   double t3)
+													   double t3,
+                                                       int type)
 													   : ossimImageSourceFilter(owner, inputSource),
 													   theTile(NULL),
 													   theThresh1(t1),
 													   theThresh2(t2),
-													   theThresh3(t3)
+													   theThresh3(t3),
+													   theType(type)
 {
 }
 
@@ -166,6 +171,10 @@ bool ossimOpenCVThresholdFilter::saveState(ossimKeywordlist& kwl,
 		"t3",
 		theThresh3,
 		true);
+	kwl.add(prefix,
+		"type",
+		theType,
+		true);
 
 	return true;
 }
@@ -189,6 +198,11 @@ bool ossimOpenCVThresholdFilter::loadState(const ossimKeywordlist& kwl,
 	if(lookup)
 	{
 		theThresh3 = ossimString(lookup).toDouble();
+	}
+    lookup = kwl.find(prefix, "type");
+	if(lookup)
+	{
+		theType = ossimString(lookup).toInt();
 	}
 	return true;
 }
@@ -228,8 +242,18 @@ void ossimOpenCVThresholdFilter::runUcharTransformation(ossimImageData* tile)
 	//long offset;
 
 	//long upperBound = tile->getWidth()*tile->getHeight();
+/* Types of thresholding */
+/*#define CV_THRESH_BINARY      0   value = value > threshold ? max_value : 0       */
+/*#define CV_THRESH_BINARY_INV  1  value = value > threshold ? 0 : max_value       */
+/*#define CV_THRESH_TRUNC       2  value = value > threshold ? threshold : value   */
+/*#define CV_THRESH_TOZERO      3   value = value > threshold ? value : 0           */
+/*#define CV_THRESH_TOZERO_INV  4  value = value > threshold ? 0 : value           */
+//#define CV_THRESH_MASK        7
 
-	cvThreshold( input, output, (unsigned char)theThresh1, 255, CV_THRESH_BINARY );
+/* #define CV_THRESH_OTSU        8  use Otsu algorithm to choose the optimal threshold value;
+                                    combine the flag with one of the above CV_THRESH_* values */
+
+	cvThreshold( input, output, (unsigned char)theThresh1, 255, theType );
 
 	/*for(offset = 0; offset < upperBound; ++offset)
 	{
@@ -278,6 +302,15 @@ ossimRefPtr<ossimProperty> ossimOpenCVThresholdFilter::getProperty(const ossimSt
 		numeric->setCacheRefreshBit();
 		return numeric;
 	}
+	if(name == "type")
+	{
+		ossimNumericProperty* numeric = new ossimNumericProperty(name,
+			ossimString::toString(theType),
+			0.0, 255.0);
+		numeric->setNumericType(ossimNumericProperty::ossimNumericPropertyType_INT);
+		numeric->setCacheRefreshBit();
+		return numeric;
+	}
 	return ossimImageSourceFilter::getProperty(name);
 }
 
@@ -287,6 +320,7 @@ void ossimOpenCVThresholdFilter::getPropertyNames(std::vector<ossimString>& prop
 	propertyNames.push_back("threshold1");
 	propertyNames.push_back("threshold2");
 	propertyNames.push_back("threshold3");
+	propertyNames.push_back("type");
 }
 
 void ossimOpenCVThresholdFilter::setProperty(ossimRefPtr<ossimProperty> property)
@@ -305,5 +339,9 @@ void ossimOpenCVThresholdFilter::setProperty(ossimRefPtr<ossimProperty> property
 	if(name == "threshold3")
 	{
 		theThresh3 = property->valueToString().toDouble();
+	}
+	if(name == "type")
+	{
+		theThresh3 = property->valueToString().toInt();
 	}
 }

@@ -15,12 +15,14 @@ public:
    ossimOpenCVThresholdFilter(ossimImageSource* inputSource,
                         double t1 = 0.0,
                         double t2 = 0.0,
-                        double t3 = 0.0);
+                        double t3 = 0.0,
+                        int type = 0);
    ossimOpenCVThresholdFilter(ossimObject* owner,
                         ossimImageSource* inputSource,
                         double t1 = 0.0,
                         double t2 = 0.0,
-                        double t3 = 0.0);
+                        double t3 = 0.0,
+                        int type = 0);
    virtual ~ossimOpenCVThresholdFilter();
    ossimString getShortName()const
       {
@@ -64,6 +66,17 @@ protected:
    double theThresh1;
    double theThresh2;
    double theThresh3;
+/** Types of thresholding  <br>
+CV_THRESH_BINARY      0   value = value > threshold ? max_value : 0       <br>
+CV_THRESH_BINARY_INV  1  value = value > threshold ? 0 : max_value       <br>
+CV_THRESH_TRUNC       2  value = value > threshold ? threshold : value   <br>
+CV_THRESH_TOZERO      3   value = value > threshold ? value : 0           <br>
+CV_THRESH_TOZERO_INV  4  value = value > threshold ? 0 : value           <br>
+CV_THRESH_MASK        7<br>
+CV_THRESH_OTSU        8  use Otsu algorithm to choose the optimal threshold value;<br>
+                                    combine the flag with one of the above CV_THRESH_* values <br>
+**/
+   int theType;
 
 TYPE_DATA
 };
