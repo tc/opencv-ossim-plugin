@@ -306,7 +306,7 @@ ossimRefPtr<ossimProperty> ossimOpenCVThresholdFilter::getProperty(const ossimSt
 	{
 		ossimNumericProperty* numeric = new ossimNumericProperty(name,
 			ossimString::toString(theType),
-			0.0, 255.0);
+			0, 8);
 		numeric->setNumericType(ossimNumericProperty::ossimNumericPropertyType_INT);
 		numeric->setCacheRefreshBit();
 		return numeric;
@@ -342,6 +342,6 @@ void ossimOpenCVThresholdFilter::setProperty(ossimRefPtr<ossimProperty> property
 	}
 	if(name == "type")
 	{
-		theThresh3 = property->valueToString().toInt();
+		theType = property->valueToString().toInt();
 	}
 }
