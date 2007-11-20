@@ -63,6 +63,7 @@ protected:
    ossimRefPtr<ossimImageData> theBlankTile;
    ossimRefPtr<ossimImageData> theTile;
    void runUcharTransformation(ossimImageData* tile);
+   void allocate();
    double theThresh1;
    double theThresh2;
    double theThresh3;

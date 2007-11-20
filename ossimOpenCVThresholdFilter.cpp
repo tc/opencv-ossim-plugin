@@ -89,10 +89,15 @@ ossimRefPtr<ossimImageData> ossimOpenCVThresholdFilter::getTile(const ossimIrect
 	long h     = tileRect.height();
 
 
-	if(!theTile.valid()) initialize();
-	if(!theTile.valid()) return 0;
-
-	if(!theTile.valid()) return 0;
+	// First time through or after an initialize()...
+	if (!theTile.valid())
+	{
+		allocate();
+		if (!theTile.valid()) // Should never happen!
+		{
+			return 0;
+		}
+	}
 
 	ossimRefPtr<ossimImageData> data = 0;
 	if(theInputConnection)
@@ -123,12 +128,18 @@ ossimRefPtr<ossimImageData> ossimOpenCVThresholdFilter::getTile(const ossimIrect
 
 void ossimOpenCVThresholdFilter::initialize()
 {
+	//Clean up theTile
+	theTile = NULL;
+}
+
+void ossimOpenCVThresholdFilter::allocate()
+{
 	if(theInputConnection)
 	{
 		theTile = 0;
 
 		theTile = new ossimU8ImageData(this,
-			1,
+			getNumberOfOutputBands(),
 			theInputConnection->getTileWidth(),
 			theInputConnection->getTileHeight());  
 		theTile->initialize();
