@@ -215,8 +215,10 @@ void ossimOpenCVThresholdFilter::runUcharTransformation(ossimImageData* tile)
 	input=cvCreateImageHeader(cvSize(tile->getWidth(),tile->getHeight()),8,1);
 	output=cvCreateImageHeader(cvSize(tile->getWidth(),tile->getHeight()),8,1);
 	char* bandSrc[3];//FIXME tile->getNumberOfBands()
-	char* bandDest;
-	bandDest = static_cast< char*>(theTile->getBuf());
+	char* bandDest1;
+	char* bandDest2 = 0;
+	char* bandDest3 = 0;
+	bandDest1 = static_cast< char*>(theTile->getBuf(0));
 
 	if(tile->getNumberOfBands() == 1)
 	{
@@ -228,16 +230,19 @@ void ossimOpenCVThresholdFilter::runUcharTransformation(ossimImageData* tile)
 	{
 		bandSrc[0]  = static_cast< char*>(tile->getBuf(0));
 		bandSrc[1]  = static_cast<char*>(tile->getBuf(1));
-		bandSrc[2]  = static_cast<char*>(tile->getBuf(1));      
+		bandSrc[2]  = static_cast<char*>(tile->getBuf(1));
+		bandDest2 = static_cast< char*>(theTile->getBuf(1));
 	}
 	else if(tile->getNumberOfBands() == 3)
 	{
 		bandSrc[0]  = static_cast<char*>(tile->getBuf(0));
 		bandSrc[1]  = static_cast<char*>(tile->getBuf(1));
 		bandSrc[2]  = static_cast<char*>(tile->getBuf(2));      
+		bandDest2 = static_cast< char*>(theTile->getBuf(1));
+		bandDest3 = static_cast< char*>(theTile->getBuf(2));
 	}
 	input->imageData=bandSrc[0];
-	output->imageData=bandDest;
+	output->imageData=bandDest1;
 
 	//long offset;
 
@@ -254,6 +259,20 @@ void ossimOpenCVThresholdFilter::runUcharTransformation(ossimImageData* tile)
                                     combine the flag with one of the above CV_THRESH_* values */
 
 	cvThreshold( input, output, (unsigned char)theThresh1, 255, theType );
+
+	if(bandDest2 != 0)
+	{
+		input->imageData=bandSrc[1];
+		output->imageData=bandDest2;
+		cvThreshold( input, output, (unsigned char)theThresh2, 255, theType );
+	}
+
+	if(bandDest3 != 0)
+	{
+		input->imageData=bandSrc[2];
+		output->imageData=bandDest3;
+		cvThreshold( input, output, (unsigned char)theThresh3, 255, theType );
+	}
 
 	/*for(offset = 0; offset < upperBound; ++offset)
 	{
