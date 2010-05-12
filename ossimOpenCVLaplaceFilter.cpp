@@ -22,7 +22,6 @@
 // $Id: ossimSharedRgbToGreyFilter.cpp,v 1.10 2005/05/23 13:06:55 gpotts Exp $
 
 #include <ossim/base/ossimRefPtr.h>
-#include "ossimOpenCVSobelFilter.h"
 #include <ossim/imaging/ossimU8ImageData.h>
 #include <ossim/base/ossimConstants.h>
 #include <ossim/base/ossimCommon.h>
@@ -32,48 +31,37 @@
 #include <ossim/imaging/ossimImageSourceFactoryRegistry.h>
 #include <ossim/base/ossimRefPtr.h>
 
-RTTI_DEF1(ossimOpenCVSobelFilter, "ossimOpenCVSobelFilter", ossimImageSourceFilter)
+#include "ossimOpenCVLaplaceFilter.h"
 
-ossimOpenCVSobelFilter::ossimOpenCVSobelFilter(ossimObject* owner)
+RTTI_DEF1(ossimOpenCVLaplaceFilter, "ossimOpenCVLaplaceFilter", ossimImageSourceFilter)
+
+ossimOpenCVLaplaceFilter::ossimOpenCVLaplaceFilter(ossimObject* owner)
    :ossimImageSourceFilter(owner),
-    theTile(NULL),
-    theXOrder(1),
-    theYOrder(1),
-    theApertureSize(3)
+   theApertureSize(3)
 {
 }
 
-ossimOpenCVSobelFilter::ossimOpenCVSobelFilter(ossimImageSource* inputSource,
-                                           int xorder,
-                                           int yorder,
-                                           int aperture_size)
+ossimOpenCVLaplaceFilter::ossimOpenCVLaplaceFilter(ossimImageSource* inputSource, int aperture_size)
    : ossimImageSourceFilter(NULL, inputSource),
      theTile(NULL),
-     theXOrder(xorder),
-     theYOrder(yorder),
      theApertureSize(aperture_size)
 {
-	
 }
 
-ossimOpenCVSobelFilter::ossimOpenCVSobelFilter(ossimObject* owner,
+ossimOpenCVLaplaceFilter::ossimOpenCVLaplaceFilter(ossimObject* owner,
                                            ossimImageSource* inputSource,
-                                           int xorder,
-                                           int yorder,
                                            int aperture_size)
    : ossimImageSourceFilter(owner, inputSource),
      theTile(NULL),
-     theXOrder(xorder),
-     theYOrder(yorder),
      theApertureSize(aperture_size)
 {
 }
 
-ossimOpenCVSobelFilter::~ossimOpenCVSobelFilter()
+ossimOpenCVLaplaceFilter::~ossimOpenCVLaplaceFilter()
 {
 }
 
-ossimRefPtr<ossimImageData> ossimOpenCVSobelFilter::getTile(const ossimIrect& tileRect,
+ossimRefPtr<ossimImageData> ossimOpenCVLaplaceFilter::getTile(const ossimIrect& tileRect,
                                                                 ossim_uint32 resLevel)
 {
   
@@ -112,7 +100,7 @@ ossimRefPtr<ossimImageData> ossimOpenCVSobelFilter::getTile(const ossimIrect& ti
    
 }
 
-void ossimOpenCVSobelFilter::initialize()
+void ossimOpenCVLaplaceFilter::initialize()
 {
   if(theInputConnection)
   {
@@ -127,7 +115,7 @@ void ossimOpenCVSobelFilter::initialize()
 
 }
 
-ossimScalarType ossimOpenCVSobelFilter::getOutputScalarType() const
+ossimScalarType ossimOpenCVLaplaceFilter::getOutputScalarType() const
 {
    if(!isSourceEnabled())
    {
@@ -137,7 +125,7 @@ ossimScalarType ossimOpenCVSobelFilter::getOutputScalarType() const
    return OSSIM_UCHAR;
 }
 
-ossim_uint32 ossimOpenCVSobelFilter::getNumberOfOutputBands() const
+ossim_uint32 ossimOpenCVLaplaceFilter::getNumberOfOutputBands() const
 {
    if(!isSourceEnabled())
    {
@@ -146,34 +134,20 @@ ossim_uint32 ossimOpenCVSobelFilter::getNumberOfOutputBands() const
    return theInputConnection->getNumberOfOutputBands();
 }
 
-bool ossimOpenCVSobelFilter::saveState(ossimKeywordlist& kwl,  const char* prefix)const
+bool ossimOpenCVLaplaceFilter::saveState(ossimKeywordlist& kwl,  const char* prefix)const
 {
    ossimImageSourceFilter::saveState(kwl, prefix);
 
-   kwl.add(prefix,"xorder",theXOrder,true);
-   kwl.add(prefix,"yorder",theYOrder,true);
    kwl.add(prefix,"aperture_size",theApertureSize,true);
    
    return true;
 }
 
-bool ossimOpenCVSobelFilter::loadState(const ossimKeywordlist& kwl, const char* prefix)
+bool ossimOpenCVLaplaceFilter::loadState(const ossimKeywordlist& kwl, const char* prefix)
 {
    ossimImageSourceFilter::loadState(kwl, prefix);
 
-   const char* lookup = kwl.find(prefix, "xorder");
-   if(lookup)
-   {
-      theXOrder = ossimString(lookup).toInt();
-      printf("Read from spec file. xorder: %d\n",theXOrder);
-   }
-   lookup = kwl.find(prefix, "yorder");
-   if(lookup)
-   {
-      theYOrder = ossimString(lookup).toInt();
-      printf("Read from spec file. yorder: %d\n",theYOrder);
-   }
-   lookup = kwl.find(prefix, "aperture_size");
+   const char* lookup = kwl.find(prefix, "aperture_size");
    if(lookup)
    {
       theApertureSize = ossimString(lookup).toInt();
@@ -187,7 +161,7 @@ bool ossimOpenCVSobelFilter::loadState(const ossimKeywordlist& kwl, const char* 
    return true;
 }
 
-void ossimOpenCVSobelFilter::runUcharTransformation(ossimImageData* tile) {
+void ossimOpenCVLaplaceFilter::runUcharTransformation(ossimImageData* tile) {
    
 	IplImage *input;
 	IplImage *output;
@@ -198,7 +172,7 @@ void ossimOpenCVSobelFilter::runUcharTransformation(ossimImageData* tile) {
 	int nChannels = tile->getNumberOfBands();
 
 	for(int k=0; k<nChannels; k++) {
-		printf("Channel %d\n",k);
+		//printf("Channel %d\n",k);
 		input=cvCreateImageHeader(cvSize(tile->getWidth(),tile->getHeight()),8,1);
 		output=cvCreateImageHeader(cvSize(tile->getWidth(),tile->getHeight()),8,1);
 		bSrc = static_cast<char*>(tile->getBuf(k));
@@ -206,7 +180,7 @@ void ossimOpenCVSobelFilter::runUcharTransformation(ossimImageData* tile) {
 		bDst = static_cast<char*>(theTile->getBuf(k));
 		output->imageData=bDst;
 		IplImage * tmp = cvCreateImage(cvSize(tile->getWidth(),tile->getHeight()),IPL_DEPTH_16S,1);
-		cvSobel(input,tmp,theXOrder,theYOrder,theApertureSize); 
+		cvLaplace(input,tmp,theApertureSize); 
 		cvConvertScale(tmp,output);
 		cvReleaseImageHeader(&input);
 		cvReleaseImageHeader(&output);

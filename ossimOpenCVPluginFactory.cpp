@@ -10,70 +10,56 @@
 //*******************************************************************
 //  $Id: ossimGdalImageWriterFactory.cpp,v 1.5 2005/10/28 13:54:25 gpotts Exp $
 
-#include "ossimOpenCVImageSourceFactory.h"
-
 #include "ossimOpenCVThresholdFilter.h"
-#include "ossimOpenCVPyrSegmentation.h"
 #include "ossimOpenCVSobelFilter.h"
 #include "ossimOpenCVCannyFilter.h"
-//#include "ossimOpenCVRegisterFilter.h"
 #include "ossimOpenCVErodeFilter.h"
 #include "ossimOpenCVDilateFilter.h"
 #include "ossimOpenCVSmoothFilter.h"
-//#include "ossimOpenCVLogPolarFilter.h"
-//#include "ossimOpenCVSquaresFilter.h"
-#include "ossimOpenCVGoodFeaturesToTrack.h"
 #include "ossimOpenCVLaplaceFilter.h"
+#include "ossimOpenCVGoodFeaturesToTrack.h"
+#include "ossimOpenCVPyrSegmentation.h"
+
+#include "ossimOpenCVPluginFactory.h"
 
 #include <ossim/base/ossimKeywordNames.h>
 #include <ossim/base/ossimObjectFactoryRegistry.h>
 #include <ossim/base/ossimTrace.h>
 
-RTTI_DEF1(ossimOpenCVImageSourceFactory, "ossimOpenCVImageSourceFactory", ossimImageSourceFactoryBase);
+RTTI_DEF1(ossimOpenCVPluginFactory,"ossimOpenCVPluginFactory", ossimImageSourceFactoryBase);
 
-static ossimTrace traceDebug("ossimOpenCVImageSourceFactory:debug");
+static ossimTrace traceDebug("ossimOpenCVPluginFactory:debug");
 
-ossimOpenCVImageSourceFactory* ossimOpenCVImageSourceFactory::theInstance=NULL;
+ossimOpenCVPluginFactory* ossimOpenCVPluginFactory::theInstance=NULL;
  
-ossimOpenCVImageSourceFactory::~ossimOpenCVImageSourceFactory()
+ossimOpenCVPluginFactory::~ossimOpenCVPluginFactory()
 {
    theInstance = NULL;
    ossimObjectFactoryRegistry::instance()->unregisterFactory(this);
 }
-ossimOpenCVImageSourceFactory* ossimOpenCVImageSourceFactory::instance()
+
+ossimOpenCVPluginFactory* ossimOpenCVPluginFactory::instance()
 {
    if(!theInstance)
    {
-      theInstance = new ossimOpenCVImageSourceFactory;
+      theInstance = new ossimOpenCVPluginFactory;
    }
 
    return theInstance;
 }
  
-ossimObject* ossimOpenCVImageSourceFactory::createObject(const ossimString& name)const
+ossimObject* ossimOpenCVPluginFactory::createObject(const ossimString& name)const
 {
 
-  // lets do the filters first
+   // lets do the filters first
    if( name == STATIC_TYPE_NAME(ossimOpenCVThresholdFilter))
    {
       return new ossimOpenCVThresholdFilter;
-   }
-   else if(name == STATIC_TYPE_NAME(ossimOpenCVPyrSegmentation))
-   {
-      return new ossimOpenCVPyrSegmentation;
    }
    else if(name == STATIC_TYPE_NAME(ossimOpenCVSobelFilter))
    {
       return new ossimOpenCVSobelFilter;
    }
-   //else if(name == STATIC_TYPE_NAME(ossimOpenCVRegisterFilter))
-   //{
-   //   return new ossimOpenCVRegisterFilter;
-   //}
-   //else if(name == STATIC_TYPE_NAME(ossimOpenCVSquaresFilter))
-   //{
-   //   return new ossimOpenCVSquaresFilter;
-   //}
    else if(name == STATIC_TYPE_NAME(ossimOpenCVCannyFilter))
    {
       return new ossimOpenCVCannyFilter;
@@ -94,22 +80,21 @@ ossimObject* ossimOpenCVImageSourceFactory::createObject(const ossimString& name
    {
       return new ossimOpenCVLaplaceFilter;
    }
-   //else if(name == STATIC_TYPE_NAME(ossimOpenCVLogPolarFilter))
-   //{
-   //   return new ossimOpenCVLogPolarFilter;
-   //}
+   else if(name == STATIC_TYPE_NAME(ossimOpenCVPyrSegmentation))
+   {
+      return new ossimOpenCVPyrSegmentation;
+   }
    else if(name == STATIC_TYPE_NAME(ossimOpenCVGoodFeaturesToTrack))
    {
       return new ossimOpenCVGoodFeaturesToTrack;
    }
-
    return NULL;
 }
 
-ossimObject* ossimOpenCVImageSourceFactory::createObject(const ossimKeywordlist& kwl,
+ossimObject* ossimOpenCVPluginFactory::createObject(const ossimKeywordlist& kwl,
                                                    const char* prefix)const
 {
-   static const char* MODULE = "ossimOpenCVImageSourceFactory::createSource";
+   static const char* MODULE = "ossimOpenCVPluginFactory::createSource";
    
    ossimString copyPrefix = prefix;
    ossimObject* result = NULL;
@@ -151,31 +136,29 @@ ossimObject* ossimOpenCVImageSourceFactory::createObject(const ossimKeywordlist&
     return result;
 }
 
-void ossimOpenCVImageSourceFactory::getTypeNameList(std::vector<ossimString>& typeList)const
+void ossimOpenCVPluginFactory::getTypeNameList(std::vector<ossimString>& typeList)const
 {
    typeList.push_back(STATIC_TYPE_NAME(ossimOpenCVThresholdFilter));
-   typeList.push_back(STATIC_TYPE_NAME(ossimOpenCVPyrSegmentation));
    typeList.push_back(STATIC_TYPE_NAME(ossimOpenCVSobelFilter));
-   //typeList.push_back(STATIC_TYPE_NAME(ossimOpenCVSquaresFilter));
    typeList.push_back(STATIC_TYPE_NAME(ossimOpenCVCannyFilter));
    typeList.push_back(STATIC_TYPE_NAME(ossimOpenCVDilateFilter));
    typeList.push_back(STATIC_TYPE_NAME(ossimOpenCVErodeFilter));
    typeList.push_back(STATIC_TYPE_NAME(ossimOpenCVSmoothFilter));
-   //typeList.push_back(STATIC_TYPE_NAME(ossimOpenCVLogPolarFilter));
-   typeList.push_back(STATIC_TYPE_NAME(ossimOpenCVGoodFeaturesToTrack));
-   //typeList.push_back(STATIC_TYPE_NAME(ossimOpenCVRegisterFilter));
    typeList.push_back(STATIC_TYPE_NAME(ossimOpenCVLaplaceFilter));
+   typeList.push_back(STATIC_TYPE_NAME(ossimOpenCVGoodFeaturesToTrack));
+   typeList.push_back(STATIC_TYPE_NAME(ossimOpenCVPyrSegmentation));
+
 }
  
-ossimOpenCVImageSourceFactory::ossimOpenCVImageSourceFactory()
+ossimOpenCVPluginFactory::ossimOpenCVPluginFactory()
    :ossimImageSourceFactoryBase()
 {}
  
-ossimOpenCVImageSourceFactory::ossimOpenCVImageSourceFactory(const ossimOpenCVImageSourceFactory&)
+ossimOpenCVPluginFactory::ossimOpenCVPluginFactory(const ossimOpenCVPluginFactory&)
    :ossimImageSourceFactoryBase()
 {}
  
-const ossimOpenCVImageSourceFactory& ossimOpenCVImageSourceFactory::operator=(ossimOpenCVImageSourceFactory&)
+const ossimOpenCVPluginFactory& ossimOpenCVPluginFactory::operator=(ossimOpenCVPluginFactory&)
 {
    return *this;
 }

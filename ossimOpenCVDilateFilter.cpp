@@ -20,6 +20,7 @@
 //
 //*************************************************************************
 // $Id: ossimSharedRgbToGreyFilter.cpp,v 1.10 2005/05/23 13:06:55 gpotts Exp $
+
 #include <ossim/base/ossimRefPtr.h>
 #include "ossimOpenCVDilateFilter.h"
 #include <ossim/imaging/ossimU8ImageData.h>
@@ -35,9 +36,9 @@
 RTTI_DEF1(ossimOpenCVDilateFilter, "ossimOpenCVDilateFilter", ossimImageSourceFilter)
 
 ossimOpenCVDilateFilter::ossimOpenCVDilateFilter(ossimObject* owner)
-:ossimImageSourceFilter(owner),
-theTile(NULL),
-theIter(1)
+	:ossimImageSourceFilter(owner),
+	theTile(NULL),
+	theIterations(1)
 {
 }
 
@@ -45,62 +46,57 @@ ossimOpenCVDilateFilter::~ossimOpenCVDilateFilter()
 {
 }
 
-ossimRefPtr<ossimImageData> ossimOpenCVDilateFilter::getTile(const ossimIrect& tileRect,
-															 ossim_uint32 resLevel)
+ossimRefPtr<ossimImageData> ossimOpenCVDilateFilter::getTile(const ossimIrect& tileRect, ossim_uint32 resLevel)
 {
 	if(!isSourceEnabled())
-	{
-		return ossimImageSourceFilter::getTile(tileRect,
-			resLevel);
+   	{
+	      return ossimImageSourceFilter::getTile(tileRect, resLevel);
 	}
 	long w     = tileRect.width();
 	long h     = tileRect.height();
-
-
-	if(!theTile.valid()) initialize();
+   
+   	if(!theTile.valid()) initialize();
 	if(!theTile.valid()) return 0;
-
-	if(!theTile.valid()) return 0;
-
+  
 	ossimRefPtr<ossimImageData> data = 0;
 	if(theInputConnection)
 	{
 		data  = theInputConnection->getTile(tileRect, resLevel);
-	}
-	else
-	{
-		return 0;
-	}
+   	} else {
+	      return 0;
+   	}
 
 	if(!data.valid()) return 0;
-	if(data->getDataObjectStatus() == OSSIM_NULL ||
-		data->getDataObjectStatus() == OSSIM_EMPTY)
-	{
-		return 0;
-	}
+	if(data->getDataObjectStatus() == OSSIM_NULL ||  data->getDataObjectStatus() == OSSIM_EMPTY)
+   	{
+	     return 0;
+   	}
 
 	theTile->setImageRectangle(tileRect);
 	theTile->makeBlank();
-
+   
 	theTile->setOrigin(tileRect.ul());
 	runUcharTransformation(data.get());
+   
+	printf("Tile (%d,%d) finished!\n",tileRect.ul().x,tileRect.ul().y); 	
+   	return theTile;
 
-	return theTile;
 
 }
 
 void ossimOpenCVDilateFilter::initialize()
 {
-	if(theInputConnection)
-	{
-		theTile = 0;
+	 if(theInputConnection)
+	  {
+	      ossimImageSourceFilter::initialize();
 
-		theTile = new ossimU8ImageData(this,
-			1,
-			theInputConnection->getTileWidth(),
-			theInputConnection->getTileHeight());  
-		theTile->initialize();
-	}
+	      theTile = new ossimU8ImageData(this,
+					     theInputConnection->getNumberOfOutputBands(),   
+		                             theInputConnection->getTileWidth(),
+		                             theInputConnection->getTileHeight());  
+	      theTile->initialize();
+	   }
+
 }
 
 ossimScalarType ossimOpenCVDilateFilter::getOutputScalarType() const
@@ -119,108 +115,57 @@ ossim_uint32 ossimOpenCVDilateFilter::getNumberOfOutputBands() const
 	{
 		return ossimImageSourceFilter::getNumberOfOutputBands();
 	}
-	return 1;
+        return theInputConnection->getNumberOfOutputBands();
 }
 
 bool ossimOpenCVDilateFilter::saveState(ossimKeywordlist& kwl,
 										const char* prefix)const
 {
-	ossimImageSourceFilter::saveState(kwl, prefix);
-	
-	kwl.add(prefix,
-	"iterations",
-	theIter,
-	true);
-	/*
-	kwl.add(prefix,
-	"center_y",
-	thecenter_y,
-	true);
-	kwl.add(prefix,
-	"M",
-	theM,
-	true);
-	*/
-	return true;
+ossimImageSourceFilter::saveState(kwl, prefix);
+
+   kwl.add(prefix,"iterations",theIterations,true);
+   
+   return true;
 }
 
 bool ossimOpenCVDilateFilter::loadState(const ossimKeywordlist& kwl,
 										const char* prefix)
 {
-	ossimImageSourceFilter::loadState(kwl, prefix);
 	
-	const char* lookup = kwl.find(prefix, "iterations");
-	if(lookup)
-	{
-		theIter = ossimString(lookup).toInt();
-	}
-	/*
-	lookup = kwl.find(prefix, "center_y");
-	if(lookup)
-	{
-	thecenter_y = ossimString(lookup).toDouble();
-	}
-	lookup = kwl.find(prefix, "M");
-	if(lookup)
-	{
-	theM = ossimString(lookup).toDouble();
-	}*/
-	return true;
+   ossimImageSourceFilter::loadState(kwl, prefix);
+
+   const char* lookup = kwl.find(prefix, "iterations");
+   if(lookup)
+   {
+      theIterations = ossimString(lookup).toInt();
+      printf("Read from spec file. iterations: %d\n",theIterations);
+   }
+   
+   return true;
 }
 
 void ossimOpenCVDilateFilter::runUcharTransformation(ossimImageData* tile)
 {   
-	IplImage *input;
-	IplImage *output;
+  IplImage *input;
+  IplImage *output;
 
+  char* bSrc;
+  char* bDst;
 
+  int nChannels = tile->getNumberOfBands();
+
+  for(int k=0; k<nChannels; k++) {
+	printf("Channel %d\n",k);
 	input=cvCreateImageHeader(cvSize(tile->getWidth(),tile->getHeight()),8,1);
 	output=cvCreateImageHeader(cvSize(tile->getWidth(),tile->getHeight()),8,1);
-	char* bandSrc[3];//FIXME tile->getNumberOfBands()
-	char* bandDest;
-
-	bandSrc[0]  = static_cast< char*>(tile->getBuf(0));
-
-	input->imageData=bandSrc[0];
-	bandDest = static_cast< char*>(theTile->getBuf());
-	output->imageData=bandDest;
-
-	cvDilate( input, output,NULL,theIter);
-
-
-	theTile->validate();
-}
-
-/*
-* Methods to expose thresholds for adjustment through the GUI
-*/
-void ossimOpenCVDilateFilter::setProperty(ossimRefPtr<ossimProperty> property)
-{
-	if(!property) return;
-	ossimString name = property->getName();
-
-	if(name == "iterations")
-	{
-		theIter = property->valueToString().toInt();
+	bSrc = static_cast<char*>(tile->getBuf(k));
+	input->imageData=bSrc;
+	bDst = static_cast<char*>(theTile->getBuf(k));
+	output->imageData=bDst;
+	cvDilate(input,output,NULL,theIterations); // a 3x3 rectangular structuring element is used
+	cvReleaseImageHeader(&input);
+	cvReleaseImageHeader(&output);
 	}
+  theTile->validate(); 
 }
 
-ossimRefPtr<ossimProperty> ossimOpenCVDilateFilter::getProperty(const ossimString& name)const
-{
-	if(name == "iterations")
-	{
-		ossimNumericProperty* numeric = new ossimNumericProperty(name,
-			ossimString::toString(theIter),
-			1, 5);
-		numeric->setNumericType(ossimNumericProperty::ossimNumericPropertyType_INT);
-		numeric->setCacheRefreshBit();
-		return numeric;
-	}
-	return ossimImageSourceFilter::getProperty(name);
-}
-
-void ossimOpenCVDilateFilter::getPropertyNames(std::vector<ossimString>& propertyNames)const
-{
-	ossimImageSourceFilter::getPropertyNames(propertyNames);
-	propertyNames.push_back("iterations");
-}

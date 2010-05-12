@@ -20,6 +20,7 @@
 //
 //*************************************************************************
 // $Id: ossimSharedRgbToGreyFilter.cpp,v 1.10 2005/05/23 13:06:55 gpotts Exp $
+
 #include <ossim/base/ossimRefPtr.h>
 #include "ossimOpenCVPyrSegmentation.h"
 #include <ossim/imaging/ossimU8ImageData.h>
@@ -37,34 +38,9 @@ RTTI_DEF1(ossimOpenCVPyrSegmentation, "ossimOpenCVPyrSegmentation", ossimImageSo
 ossimOpenCVPyrSegmentation::ossimOpenCVPyrSegmentation(ossimObject* owner)
    :ossimImageSourceFilter(owner),
     theTile(NULL),
-    theC1(1.0/3.0),
-    theC2(1.0/3.0),
-    theC3(1.0/3.0)
-{
-}
-
-ossimOpenCVPyrSegmentation::ossimOpenCVPyrSegmentation(ossimImageSource* inputSource,
-                                           double c1,
-                                           double c2,
-                                           double c3)
-   : ossimImageSourceFilter(NULL, inputSource),
-     theTile(NULL),
-     theC1(c1),
-     theC2(c2),
-     theC3(c3)
-{
-}
-
-ossimOpenCVPyrSegmentation::ossimOpenCVPyrSegmentation(ossimObject* owner,
-                                           ossimImageSource* inputSource,
-                                           double c1,
-                                           double c2,
-                                           double c3)
-   : ossimImageSourceFilter(owner, inputSource),
-     theTile(NULL),
-     theC1(c1),
-     theC2(c2),
-     theC3(c3)
+    theLevel(4),
+    theThreshold1(255.0),
+    theThreshold2(30.0)	
 {
 }
 
@@ -72,58 +48,51 @@ ossimOpenCVPyrSegmentation::~ossimOpenCVPyrSegmentation()
 {
 }
 
-ossimRefPtr<ossimImageData> ossimOpenCVPyrSegmentation::getTile(const ossimIrect& tileRect,
-                                                                ossim_uint32 resLevel)
+ossimRefPtr<ossimImageData> ossimOpenCVPyrSegmentation::getTile(const ossimIrect& tileRect, ossim_uint32 resLevel)
 {
-   if(!isSourceEnabled())
-   {
-      return ossimImageSourceFilter::getTile(tileRect,
-                                             resLevel);
-   }
-   long w     = tileRect.width();
-   long h     = tileRect.height();
+	if(!isSourceEnabled())
+   	{
+	      return ossimImageSourceFilter::getTile(tileRect, resLevel);
+	}
+	long w     = tileRect.width();
+	long h     = tileRect.height();
+   
+   	if(!theTile.valid()) initialize();
+	if(!theTile.valid()) return 0;
+  
+	ossimRefPtr<ossimImageData> data = 0;
+	if(theInputConnection)
+	{
+		data  = theInputConnection->getTile(tileRect, resLevel);
+   	} else {
+	      return 0;
+   	}
 
-   
-   if(!theTile.valid()) initialize();
-   if(!theTile.valid()) return 0;
-   
-   if(!theTile.valid()) return 0;
-   
-   ossimRefPtr<ossimImageData> data = 0;
-   if(theInputConnection)
-   {
-      data  = theInputConnection->getTile(tileRect, resLevel);
-   }
-   else
-   {
-      return 0;
-   }
+	if(!data.valid()) return 0;
+	if(data->getDataObjectStatus() == OSSIM_NULL ||  data->getDataObjectStatus() == OSSIM_EMPTY)
+   	{
+	     return 0;
+   	}
 
-   if(!data.valid()) return 0;
-   if(data->getDataObjectStatus() == OSSIM_NULL ||
-      data->getDataObjectStatus() == OSSIM_EMPTY)
-   {
-      return 0;
-   }
-
-   theTile->setImageRectangle(tileRect);
-   theTile->makeBlank();
+	theTile->setImageRectangle(tileRect);
+	theTile->makeBlank();
    
-   theTile->setOrigin(tileRect.ul());
-   runUcharTransformation(data.get());
+	theTile->setOrigin(tileRect.ul());
+	runUcharTransformation(data.get());
    
-   return theTile;
-   
+	printf("Tile (%d,%d) finished!\n",tileRect.ul().x,tileRect.ul().y); 	
+   	return theTile;   
 }
+
 
 void ossimOpenCVPyrSegmentation::initialize()
 {
-   if(theInputConnection)
-   {
-      theTile = 0;
-      
+  if(theInputConnection)
+  {
+      ossimImageSourceFilter::initialize();
+
       theTile = new ossimU8ImageData(this,
-                                     1,
+				     theInputConnection->getNumberOfOutputBands(),   
                                      theInputConnection->getTileWidth(),
                                      theInputConnection->getTileHeight());  
       theTile->initialize();
@@ -146,27 +115,17 @@ ossim_uint32 ossimOpenCVPyrSegmentation::getNumberOfOutputBands() const
    {
       return ossimImageSourceFilter::getNumberOfOutputBands();
    }
-   return 1;
+   return theInputConnection->getNumberOfOutputBands();
 }
 
-bool ossimOpenCVPyrSegmentation::saveState(ossimKeywordlist& kwl,
-                                     const char* prefix)const
+bool ossimOpenCVPyrSegmentation::saveState(ossimKeywordlist& kwl, const char* prefix)const
 {
    ossimImageSourceFilter::saveState(kwl, prefix);
 
-   kwl.add(prefix,
-           "c1",
-           theC1,
-           true);
-   kwl.add(prefix,
-           "c2",
-           theC2,
-           true);
-   kwl.add(prefix,
-           "c3",
-           theC3,
-           true);
-   
+   kwl.add(prefix,"level",theLevel,true);
+   kwl.add(prefix,"threshold1",theThreshold1,true);
+   kwl.add(prefix,"threshold2",theThreshold2,true); 
+
    return true;
 }
 
@@ -175,65 +134,83 @@ bool ossimOpenCVPyrSegmentation::loadState(const ossimKeywordlist& kwl,
 {
    ossimImageSourceFilter::loadState(kwl, prefix);
 
-   const char* lookup = kwl.find(prefix, "c1");
+   const char* lookup = kwl.find(prefix, "level");
    if(lookup)
    {
-      theC1 = ossimString(lookup).toDouble();
+      theLevel = ossimString(lookup).toInt();
+      printf("Read from spec file. level: %d\n",theLevel);
    }
-   lookup = kwl.find(prefix, "c2");
+   lookup = kwl.find(prefix, "threshold1");
    if(lookup)
    {
-      theC2 = ossimString(lookup).toDouble();
+      theThreshold1 = ossimString(lookup).toDouble();
+      printf("Read from spec file. threshold1: %f\n",theThreshold1);
    }
-   lookup = kwl.find(prefix, "c3");
+   lookup = kwl.find(prefix, "threshold2");
    if(lookup)
    {
-      theC3 = ossimString(lookup).toDouble();
+      theThreshold2 = ossimString(lookup).toDouble();
+      printf("Read from spec file. threshold2: %f\n",theThreshold2);
    }
+
    return true;
 }
 
 void ossimOpenCVPyrSegmentation::runUcharTransformation(ossimImageData* tile)
 {   
-   IplImage *input;
-   IplImage *output;
 
-   input=cvCreateImageHeader(cvSize(tile->getWidth(),tile->getHeight()),8,1);
-   output=cvCreateImageHeader(cvSize(tile->getWidth(),tile->getHeight()),8,1);
-   //tile->getNumberOfBands()
-   char* bandSrc[3];//FIXME
-   char* bandDest;
+	IplImage *input;
+	IplImage *output;
 
-   bandSrc[0]  = static_cast< char*>(tile->getBuf(0));
+	char* bSrc;
+	char* bDst;
 
-   input->imageData=bandSrc[0];
-   bandDest = static_cast< char*>(theTile->getBuf());
-   output->imageData=bandDest;
+	CvSeq *comp; // pointer to the output sequence of the segmented components
+	CvConnectedComp * cc; // pointer to a segmented component
+	int n_comp;  // number of segmented components in the output sequence
+	CvMemStorage *storage; 
+	int nChannels = tile->getNumberOfBands();
 
-CvSeq *comp;
-CvMemStorage *storage;
-int  level = 4;
-storage = cvCreateMemStorage ( 1000 );
-threshold1 =255;
-threshold2 =30;
-cvPyrSegmentation(input, output, storage, &comp, 
-                      level, threshold1+1, threshold2+1);
+	for(int k=0; k<nChannels; k++) {
 
-int l_comp=comp->total;
-int i=0;
-ossimAnnotationPolyObject *poly=new ossimAnnotationPolyObject();
-CvConnectedComp* cur_comp;
-while (i<l_comp)
-{
-	cur_comp=(CvConnectedComp*)cvGetSeqElem(comp,i);
-	for (int j=0; j<cur_comp->contour->total;j++)
-	{
-		poly->addPoint(ossimDpt(((CvPoint*)cvGetSeqElem(cur_comp->contour,j))->x,
-					 ((CvPoint*)cvGetSeqElem(cur_comp->contour,j))->y));
-	}
-}
-cvReleaseMemStorage(&storage );
+		printf("Channel %d\n",k);
+
+		// Pyramids segmentation
+		input=cvCreateImageHeader(cvSize(tile->getWidth(),tile->getHeight()),8,1);
+		output=cvCreateImageHeader(cvSize(tile->getWidth(),tile->getHeight()),8,1);
+		bSrc = static_cast<char*>(tile->getBuf(k));
+		input->imageData=bSrc;
+		bDst = static_cast<char*>(theTile->getBuf(k));
+		output->imageData=bDst;
+		storage = cvCreateMemStorage (0); // creates a 64K memory storage block 
+		cvPyrSegmentation(input, output, storage, &comp, theLevel, theThreshold1, theThreshold2);
+		n_comp=comp->total;
+
+		/* FIXME cvPyrSegmentation does not fill 'contour' in CvConnectedComponent struct...
+		printf("Number of segments found: %d\n",n_comp);
+		int i=0;
+		while (i<n_comp)
+		{
+			printf("Segment %d\n",i);
+			cc=(CvConnectedComp*)cvGetSeqElem(comp,i);
+			printf("Area: %f\n",cc->area);
+			CvScalar s = (CvScalar)cc->value; 
+			printf("Value: (%f, %f, %f, %f)\n",s.val[0],s.val[1],s.val[2],s.val[3]);
+			printf("Contour: %p\n",cc->contour);
+			//for (int j=0; j<currentComp->contour->total;j++)
+			//{
+			//	printf("(%d,%d) ",((CvPoint*)cvGetSeqElem(currentComp->contour,j))->x,((CvPoint*)cvGetSeqElem(currentComp->contour,j))->y);
+			//}
+			i++;
+		} 
+		*/ 
+		cvReleaseImageHeader(&input);
+		cvReleaseImageHeader(&output);
+		cvReleaseMemStorage(&storage);
+	}	
+  
+	theTile->validate(); 
 
 
-   theTile->validate();
+
 }

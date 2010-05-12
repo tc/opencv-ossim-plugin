@@ -20,8 +20,10 @@
 //
 //*************************************************************************
 // $Id: ossimSharedRgbToGreyFilter.cpp,v 1.10 2005/05/23 13:06:55 gpotts Exp $
-#include <ossim/base/ossimRefPtr.h>
+
 #include "ossimOpenCVCannyFilter.h"
+
+#include <ossim/base/ossimRefPtr.h>
 #include <ossim/imaging/ossimU8ImageData.h>
 #include <ossim/base/ossimConstants.h>
 #include <ossim/base/ossimCommon.h>
@@ -36,34 +38,34 @@ RTTI_DEF1(ossimOpenCVCannyFilter, "ossimOpenCVCannyFilter", ossimImageSourceFilt
 ossimOpenCVCannyFilter::ossimOpenCVCannyFilter(ossimObject* owner)
    :ossimImageSourceFilter(owner),
     theTile(NULL),
-    theC1(1.0),
-    theC2(3.0),
-    theC3(3)
+    theThreshold1(1.0/3.0),
+    theThreshold2(1.0/3.0),
+    theApertureSize(3)
 {
 }
 
 ossimOpenCVCannyFilter::ossimOpenCVCannyFilter(ossimImageSource* inputSource,
-                                           double c1,
-                                           double c2,
-                                           int c3)
+                                           double threshold1 = 1.0/3.0, 
+					   double threshold2 = 1.0/3.0, 
+					   int apertureSize = 3)
    : ossimImageSourceFilter(NULL, inputSource),
      theTile(NULL),
-     theC1(c1),
-     theC2(c2),
-     theC3(c3)
+     theThreshold1(threshold1),
+     theThreshold2(threshold2),
+     theApertureSize(apertureSize)
 {
 }
 
 ossimOpenCVCannyFilter::ossimOpenCVCannyFilter(ossimObject* owner,
                                            ossimImageSource* inputSource,
-                                           double c1,
-                                           double c2,
-                                           int c3)
+                                           double threshold1 = 1.0/3.0, 
+					   double threshold2 = 1.0/3.0, 
+					   int apertureSize = 3)
    : ossimImageSourceFilter(owner, inputSource),
      theTile(NULL),
-     theC1(c1),
-     theC2(c2),
-     theC3(c3)
+     theThreshold1(threshold1),
+     theThreshold2(threshold2),
+     theApertureSize(apertureSize)
 {
 }
 
@@ -71,58 +73,53 @@ ossimOpenCVCannyFilter::~ossimOpenCVCannyFilter()
 {
 }
 
-ossimRefPtr<ossimImageData> ossimOpenCVCannyFilter::getTile(const ossimIrect& tileRect,
-                                                                ossim_uint32 resLevel)
+ossimRefPtr<ossimImageData> ossimOpenCVCannyFilter::getTile(const ossimIrect& tileRect, ossim_uint32 resLevel) 
 {
-   if(!isSourceEnabled())
-   {
-      return ossimImageSourceFilter::getTile(tileRect,
-                                             resLevel);
-   }
-   long w     = tileRect.width();
-   long h     = tileRect.height();
 
+	if(!isSourceEnabled())
+   	{
+	      return ossimImageSourceFilter::getTile(tileRect, resLevel);
+	}
+	long w     = tileRect.width();
+	long h     = tileRect.height();
    
-   if(!theTile.valid()) initialize();
-   if(!theTile.valid()) return 0;
-   
-   if(!theTile.valid()) return 0;
-   
-   ossimRefPtr<ossimImageData> data = 0;
-   if(theInputConnection)
-   {
-      data  = theInputConnection->getTile(tileRect, resLevel);
-   }
-   else
-   {
-      return 0;
-   }
+   	if(!theTile.valid()) initialize();
+	if(!theTile.valid()) return 0;
+  
+	ossimRefPtr<ossimImageData> data = 0;
+	if(theInputConnection)
+	{
+		data  = theInputConnection->getTile(tileRect, resLevel);
+   	} else {
+	      return 0;
+   	}
 
-   if(!data.valid()) return 0;
-   if(data->getDataObjectStatus() == OSSIM_NULL ||
-      data->getDataObjectStatus() == OSSIM_EMPTY)
-   {
-      return 0;
-   }
+	if(!data.valid()) return 0;
+	if(data->getDataObjectStatus() == OSSIM_NULL ||  data->getDataObjectStatus() == OSSIM_EMPTY)
+   	{
+	     return 0;
+   	}
 
-   theTile->setImageRectangle(tileRect);
-   theTile->makeBlank();
+	theTile->setImageRectangle(tileRect);
+	theTile->makeBlank();
    
-   theTile->setOrigin(tileRect.ul());
-   runUcharTransformation(data.get());
+	theTile->setOrigin(tileRect.ul());
+	runUcharTransformation(data.get());
    
-   return theTile;
+	printf("Tile (%d,%d) finished!\n",tileRect.ul().x,tileRect.ul().y); 	
+   	return theTile;
+  
    
 }
 
 void ossimOpenCVCannyFilter::initialize()
 {
-   if(theInputConnection)
-   {
-      theTile = 0;
-      
+  if(theInputConnection)
+  {
+      ossimImageSourceFilter::initialize();
+
       theTile = new ossimU8ImageData(this,
-                                     1,
+				     theInputConnection->getNumberOfOutputBands(),   
                                      theInputConnection->getTileWidth(),
                                      theInputConnection->getTileHeight());  
       theTile->initialize();
@@ -135,7 +132,6 @@ ossimScalarType ossimOpenCVCannyFilter::getOutputScalarType() const
    {
       return ossimImageSourceFilter::getOutputScalarType();
    }
-   
    return OSSIM_UCHAR;
 }
 
@@ -145,7 +141,7 @@ ossim_uint32 ossimOpenCVCannyFilter::getNumberOfOutputBands() const
    {
       return ossimImageSourceFilter::getNumberOfOutputBands();
    }
-   return 1;
+   return theInputConnection->getNumberOfOutputBands();
 }
 
 bool ossimOpenCVCannyFilter::saveState(ossimKeywordlist& kwl,
@@ -154,16 +150,16 @@ bool ossimOpenCVCannyFilter::saveState(ossimKeywordlist& kwl,
    ossimImageSourceFilter::saveState(kwl, prefix);
 
    kwl.add(prefix,
-           "c1",
-           theC1,
+           "theshold1",
+           theThreshold1,
            true);
    kwl.add(prefix,
-           "c2",
-           theC2,
+           "threshold2",
+           theThreshold2,
            true);
    kwl.add(prefix,
-           "c3",
-           theC3,
+           "aperture_size",
+           theApertureSize,
            true);
    
    return true;
@@ -174,42 +170,50 @@ bool ossimOpenCVCannyFilter::loadState(const ossimKeywordlist& kwl,
 {
    ossimImageSourceFilter::loadState(kwl, prefix);
 
-   const char* lookup = kwl.find(prefix, "c1");
+   const char* lookup = kwl.find(prefix, "threshold1");
    if(lookup)
    {
-      theC1 = ossimString(lookup).toDouble();
+      theThreshold1 = ossimString(lookup).toDouble();
+      printf("Read from spec file. threshold1: %f\n",theThreshold1);
    }
-   lookup = kwl.find(prefix, "c2");
+   lookup = kwl.find(prefix, "threshold2");
    if(lookup)
    {
-      theC2 = ossimString(lookup).toDouble();
+      theThreshold2 = ossimString(lookup).toDouble();
+      printf("Read from spec file. threshold2: %f\n",theThreshold2);
    }
-   lookup = kwl.find(prefix, "c3");
+   lookup = kwl.find(prefix, "aperture_size");
    if(lookup)
    {
-      theC3 = ossimString(lookup).toInt();
+      theApertureSize = ossimString(lookup).toInt();
+      printf("Read from spec file. aperture_size: %d\n",theApertureSize);
    }
    return true;
 }
 
 void ossimOpenCVCannyFilter::runUcharTransformation(ossimImageData* tile)
 {   
-   IplImage *input;
-   IplImage *output;
 
-   input=cvCreateImageHeader(cvSize(tile->getWidth(),tile->getHeight()),8,1);
-   output=cvCreateImageHeader(cvSize(tile->getWidth(),tile->getHeight()),8,1);
-   char* bandSrc[3];//tile->getNumberOfBands() FIXME
-   char* bandDest;
-   
-      bandSrc[0]  = static_cast< char*>(tile->getBuf(0));
+	IplImage *input;
+	IplImage *output;
 
-   input->imageData=bandSrc[0];
-   bandDest = static_cast< char*>(theTile->getBuf());
-   output->imageData=bandDest;
+	char* bSrc;
+	char* bDst;
 
-        //cvCanny( input,output, theC1,theC2, theC3 );
-    cvCanny( input,output, 0.01,0.01,3 );
+	int nChannels = tile->getNumberOfBands();
 
-   theTile->validate();
+	for(int k=0; k<nChannels; k++) {
+		printf("Channel %d\n",k);
+		input=cvCreateImageHeader(cvSize(tile->getWidth(),tile->getHeight()),8,1);
+		output=cvCreateImageHeader(cvSize(tile->getWidth(),tile->getHeight()),8,1);
+		bSrc = static_cast<char*>(tile->getBuf(k));
+		input->imageData=bSrc;
+		bDst = static_cast<char*>(theTile->getBuf(k));
+		output->imageData=bDst;
+        	cvCanny(input, output, theThreshold1, theThreshold2, theApertureSize);
+		cvReleaseImageHeader(&input);
+		cvReleaseImageHeader(&output);
+	}
+
+	theTile->validate();   
 }

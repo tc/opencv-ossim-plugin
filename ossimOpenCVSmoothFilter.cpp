@@ -20,27 +20,31 @@
 //
 //*************************************************************************
 // $Id: ossimSharedRgbToGreyFilter.cpp,v 1.10 2005/05/23 13:06:55 gpotts Exp $
-#include <ossim/base/ossimRefPtr.h>
+
 #include "ossimOpenCVSmoothFilter.h"
-#include <ossim/imaging/ossimU8ImageData.h>
+
+#include <ossim/base/ossimRefPtr.h>
+
 #include <ossim/base/ossimConstants.h>
 #include <ossim/base/ossimCommon.h>
 #include <ossim/base/ossimKeywordlist.h>
 #include <ossim/base/ossimKeywordNames.h>
 #include <ossim/imaging/ossimImageSourceFactoryBase.h>
 #include <ossim/imaging/ossimImageSourceFactoryRegistry.h>
+#include <ossim/imaging/ossimU8ImageData.h>
 #include <ossim/base/ossimRefPtr.h>
 
 RTTI_DEF1(ossimOpenCVSmoothFilter, "ossimOpenCVSmoothFilter", ossimImageSourceFilter)
 
+
 ossimOpenCVSmoothFilter::ossimOpenCVSmoothFilter(ossimObject* owner)
    :ossimImageSourceFilter(owner),
-    theTile(NULL),
-	param1(3),
-	param2(3),
-	param3(0),
-	param4(0)
-
+   theTile(NULL),
+   theParam1(3),
+   theParam2(3),
+   theParam3(0),
+   theParam4(0),
+   theSmoothType(2)
 {
 }
 
@@ -48,62 +52,57 @@ ossimOpenCVSmoothFilter::~ossimOpenCVSmoothFilter()
 {
 }
 
-ossimRefPtr<ossimImageData> ossimOpenCVSmoothFilter::getTile(const ossimIrect& tileRect,
-                                                                ossim_uint32 resLevel)
-{
-   if(!isSourceEnabled())
-   {
-      return ossimImageSourceFilter::getTile(tileRect,
-                                             resLevel);
-   }
-   long w     = tileRect.width();
-   long h     = tileRect.height();
+ossimRefPtr<ossimImageData> ossimOpenCVSmoothFilter::getTile(const ossimIrect& tileRect, ossim_uint32 resLevel) {
 
+	if(!isSourceEnabled())
+   	{
+	      return ossimImageSourceFilter::getTile(tileRect, resLevel);
+	}
+	long w     = tileRect.width();
+	long h     = tileRect.height();
    
-   if(!theTile.valid()) initialize();
-   if(!theTile.valid()) return 0;
-   
-   if(!theTile.valid()) return 0;
-   
-   ossimRefPtr<ossimImageData> data = 0;
-   if(theInputConnection)
-   {
-      data  = theInputConnection->getTile(tileRect, resLevel);
-   }
-   else
-   {
-      return 0;
-   }
+   	if(!theTile.valid()) initialize();
+	if(!theTile.valid()) return 0;
+  
+	ossimRefPtr<ossimImageData> data = 0;
+	if(theInputConnection)
+	{
+		data  = theInputConnection->getTile(tileRect, resLevel);
+   	} else {
+	      return 0;
+   	}
 
-   if(!data.valid()) return 0;
-   if(data->getDataObjectStatus() == OSSIM_NULL ||
-      data->getDataObjectStatus() == OSSIM_EMPTY)
-   {
-      return 0;
-   }
+	if(!data.valid()) return 0;
+	if(data->getDataObjectStatus() == OSSIM_NULL ||  data->getDataObjectStatus() == OSSIM_EMPTY)
+   	{
+	     return 0;
+   	}
 
-   theTile->setImageRectangle(tileRect);
-   theTile->makeBlank();
+	theTile->setImageRectangle(tileRect);
+	theTile->makeBlank();
    
-   theTile->setOrigin(tileRect.ul());
-   runUcharTransformation(data.get());
+	theTile->setOrigin(tileRect.ul());
+	runUcharTransformation(data.get());
    
-   return theTile;
-   
+	printf("Tile (%d,%d) finished!\n",tileRect.ul().x,tileRect.ul().y); 	
+   	return theTile;
+  
 }
 
 void ossimOpenCVSmoothFilter::initialize()
 {
-   if(theInputConnection)
-   {
-      theTile = 0;
-      
+
+  if(theInputConnection)
+  {
+      ossimImageSourceFilter::initialize();
+
       theTile = new ossimU8ImageData(this,
-                                     1,
+				     theInputConnection->getNumberOfOutputBands(),   
                                      theInputConnection->getTileWidth(),
                                      theInputConnection->getTileHeight());  
       theTile->initialize();
    }
+
 }
 
 ossimScalarType ossimOpenCVSmoothFilter::getOutputScalarType() const
@@ -111,8 +110,7 @@ ossimScalarType ossimOpenCVSmoothFilter::getOutputScalarType() const
    if(!isSourceEnabled())
    {
       return ossimImageSourceFilter::getOutputScalarType();
-   }
-   
+   }   
    return OSSIM_UCHAR;
 }
 
@@ -122,81 +120,120 @@ ossim_uint32 ossimOpenCVSmoothFilter::getNumberOfOutputBands() const
    {
       return ossimImageSourceFilter::getNumberOfOutputBands();
    }
-   return 1;
+   return theInputConnection->getNumberOfOutputBands();
+
 }
 
-bool ossimOpenCVSmoothFilter::saveState(ossimKeywordlist& kwl,
-                                     const char* prefix)const
-{
+bool ossimOpenCVSmoothFilter::saveState(ossimKeywordlist& kwl, const char* prefix)const {
+   
    ossimImageSourceFilter::saveState(kwl, prefix);
 
-   kwl.add(prefix,
-           "param_1",
-           param1,
-           true);
-   kwl.add(prefix,
-           "param_2",
-           param2,
-           true);
-   kwl.add(prefix,
-           "param_3",
-           param3,
-           true);
-   
-   kwl.add(prefix,
-           "param_4",
-           param4,
-           true);
+   kwl.add(prefix,"param1",theParam1,true);
+   kwl.add(prefix,"param2",theParam2,true);
+   kwl.add(prefix,"param3",theParam3,true);
+   kwl.add(prefix,"param4",theParam4,true);
+   switch(theSmoothType) {
+	case 0:
+	   kwl.add(prefix,"smooth_type","CV_BLUR_NO_SCALE",true);
+	break;
+	case 1:
+	   kwl.add(prefix,"smooth_type","CV_BLUR",true);
+	break;
+	case 2:
+	   kwl.add(prefix,"smooth_type","CV_GAUSSIAN",true);
+	break;
+	case 3:
+	   kwl.add(prefix,"smooth_type","CV_MEDIAN",true);
+	break;
+	case 4:
+	   kwl.add(prefix,"smooth_type","CV_BILATERAL",true);
+	break;
+   }
    return true;
 }
 
-bool ossimOpenCVSmoothFilter::loadState(const ossimKeywordlist& kwl,
-                                     const char* prefix)
-{
+bool ossimOpenCVSmoothFilter::loadState(const ossimKeywordlist& kwl, const char* prefix) { 
+
    ossimImageSourceFilter::loadState(kwl, prefix);
 
-   const char* lookup = kwl.find(prefix, "param_1");
+   const char* lookup = kwl.find(prefix, "param1");
    if(lookup)
    {
-      param1 = ossimString(lookup).toInt();
+      theParam1 = ossimString(lookup).toInt();
+      printf("Read from spec file. param1: %d\n",theParam1);
    }
-   lookup = kwl.find(prefix, "param_2");
+   lookup = kwl.find(prefix, "param2");
    if(lookup)
    {
-      param2 = ossimString(lookup).toInt();
+      theParam2 = ossimString(lookup).toInt();
+      printf("Read from spec file. param2: %d\n",theParam2);
    }
-   lookup = kwl.find(prefix, "param_3");
+   lookup = kwl.find(prefix, "param3");
    if(lookup)
    {
-      param3 = ossimString(lookup).toDouble();
+      theParam3 = ossimString(lookup).toDouble();
+      printf("Read from spec file. param3: %f\n",theParam3);
    }
-   lookup = kwl.find(prefix, "param_4");
+   lookup = kwl.find(prefix, "param4");
    if(lookup)
    {
-      param4 = ossimString(lookup).toDouble();
+      theParam4 = ossimString(lookup).toDouble();
+      printf("Read from spec file. param4: %f\n",theParam4);
+   }
+   lookup = kwl.find(prefix, "smooth_type");
+   if(lookup)
+   {
+	if(strcmp(lookup,"CV_BLUR_NO_SCALE")==0){
+		theSmoothType=0; 		
+	        printf("Read from spec file. smooth_type: %s\n",lookup);
+	}
+	else if(strcmp(lookup,"CV_BLUR")==0){
+		theSmoothType=1; 		
+	        printf("Read from spec file. smooth_type: %s\n",lookup);
+	}
+	else if(strcmp(lookup,"CV_GAUSSIAN")==0){
+		theSmoothType=2; 		
+	        printf("Read from spec file. smooth_type: %s\n",lookup);
+	}
+	else if(strcmp(lookup,"CV_MEDIAN")==0){
+		theSmoothType=3; 		
+	        printf("Read from spec file. smooth_type: %s\n",lookup);
+	}
+	else if(strcmp(lookup,"CV_BILATERAL")==0){
+		theSmoothType=4; 		
+        	printf("Read from spec file. smooth_type: %s\n",lookup);
+	}
+	else {
+		printf("%s not supported as smooth_type parameter for OpenCVSmoothFilter!\nDefault smooth_type: CV_GAUSSIAN\n",lookup);
+	}
    }
    return true;
 }
 
 void ossimOpenCVSmoothFilter::runUcharTransformation(ossimImageData* tile)
-{   
-   IplImage *input;
-   IplImage *output;
+{ 
 
-   input=cvCreateImageHeader(cvSize(tile->getWidth(),tile->getHeight()),8,1);
-   output=cvCreateImageHeader(cvSize(tile->getWidth(),tile->getHeight()),8,1);
-   char* bandSrc[3];//FIXME tile->getNumberOfBands()
-   char* bandDest;
-   
-      bandSrc[0]  = static_cast< char*>(tile->getBuf(0));
+	IplImage *input;
+	IplImage *output;
 
-   input->imageData=bandSrc[0];
-   bandDest = static_cast< char*>(theTile->getBuf());
-   output->imageData=bandDest;
+	char* bSrc;
+	char* bDst;
 
-	//cvSmooth( input, output, CV_MEDIAN,
-      //         param1, param2, param3,param4 );
- 	cvSmooth( input, output, CV_MEDIAN, 9,9);//, param3,param4 );
+	int nChannels = tile->getNumberOfBands();
+
+	for(int k=0; k<nChannels; k++) {
+		printf("Channel %d\n",k);
+		input=cvCreateImageHeader(cvSize(tile->getWidth(),tile->getHeight()),8,1);
+		output=cvCreateImageHeader(cvSize(tile->getWidth(),tile->getHeight()),8,1);
+		bSrc = static_cast<char*>(tile->getBuf(k));
+		input->imageData=bSrc;
+		bDst = static_cast<char*>(theTile->getBuf(k));
+		output->imageData=bDst;
+		cvSmooth(input,output,theSmoothType,theParam1,theParam2,theParam3,theParam4);
+		cvReleaseImageHeader(&input);
+		cvReleaseImageHeader(&output);
+	}
+
+	theTile->validate(); 
  
-   theTile->validate();
-}
+   }
