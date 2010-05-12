@@ -1,15 +1,3 @@
-//*******************************************************************
-// Copyright (C) 2000 ImageLinks Inc.
-//
-// License:  LGPL
-//
-// See LICENSE.txt file in the top level directory for more details.
-//
-// Author:  Garrett Potts
-//
-//*******************************************************************
-//  $Id: ossimGdalImageWriterFactory.h,v 1.1.1.1 2005/02/17 21:47:41 dburken Exp $
-
 #ifndef ossimOpenCVPluginFactory_HEADER
 #define ossimOpenCVPluginFactory_HEADER
 
@@ -19,6 +7,9 @@ class ossimImageFileWriter;
 class ossimKeywordlist;
 class ossimImageWriterFactory;
 
+/** @brief Plugin Factory  
+  *
+ **/
 class ossimOpenCVPluginFactory: public ossimImageSourceFactoryBase
 {   
 
