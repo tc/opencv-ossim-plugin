@@ -1,13 +1,25 @@
 #ifndef ossimOpenCVDilateFilter_HEADER
 #define ossimOpenCVDilateFilter_HEADER
+
 #include "ossim/plugin/ossimSharedObjectBridge.h"
 #include "ossim/base/ossimString.h"
-
-
 #include "ossim/imaging/ossimImageSourceFilter.h"
 
 #include "cv.h"
 
+/*! @brief OpenCV Dilate Filter 
+ *
+ * Dilates an image by using a specific structuring element.
+ * @param iterations Number of times dilation is applied
+ *
+ * The function dilates the source image using the specified structuring element that determines the shape of a pixel neighborhood 
+ * over which the minimum is taken:
+ *
+ *  \f$ \max _{(x',y') \, in \, \texttt{element}}src(x+x',y+y') \f$
+ *
+ * A 3x3 rectangular structuring element is used for erosion. Dilation can be applied several (iterations) times. 
+ *
+ */
 class ossimOpenCVDilateFilter : public ossimImageSourceFilter
 {
 public:
@@ -47,15 +59,15 @@ public:
    /*
    * Methods to expose thresholds for adjustment through the GUI
    */
-   virtual void setProperty(ossimRefPtr<ossimProperty> property);
-   virtual ossimRefPtr<ossimProperty> getProperty(const ossimString& name)const;
-   virtual void getPropertyNames(std::vector<ossimString>& propertyNames)const;
+   //virtual void setProperty(ossimRefPtr<ossimProperty> property);
+   //virtual ossimRefPtr<ossimProperty> getProperty(const ossimString& name)const;
+   //virtual void getPropertyNames(std::vector<ossimString>& propertyNames)const;
 
 protected:
-   ossimRefPtr<ossimImageData> theBlankTile;
+   //ossimRefPtr<ossimImageData> theBlankTile;
    ossimRefPtr<ossimImageData> theTile;
    void runUcharTransformation(ossimImageData* tile);
-   int theIter;
+   int theIterations;
 
 TYPE_DATA
 };

@@ -10,8 +10,8 @@
 //*******************************************************************
 //  $Id: ossimGdalImageWriterFactory.h,v 1.1.1.1 2005/02/17 21:47:41 dburken Exp $
 
-#ifndef ossimOpenCVImageSourceFactory_HEADER
-#define ossimOpenCVImageSourceFactory_HEADER
+#ifndef ossimOpenCVPluginFactory_HEADER
+#define ossimOpenCVPluginFactory_HEADER
 
 #include "ossim/imaging/ossimImageSourceFactoryBase.h"
 
@@ -19,23 +19,23 @@ class ossimImageFileWriter;
 class ossimKeywordlist;
 class ossimImageWriterFactory;
 
-class ossimOpenCVImageSourceFactory: public ossimImageSourceFactoryBase
+class ossimOpenCVPluginFactory: public ossimImageSourceFactoryBase
 {   
+
 public:
-    virtual ~ossimOpenCVImageSourceFactory();
-    static ossimOpenCVImageSourceFactory* instance();
+    virtual ~ossimOpenCVPluginFactory();
+    static ossimOpenCVPluginFactory* instance();
     virtual ossimObject* createObject(const ossimString& name)const;
-    virtual ossimObject* createObject(const ossimKeywordlist& kwl,
-                                      const char* prefix=0)const;
+    virtual ossimObject* createObject(const ossimKeywordlist& kwl,const char* prefix=0)const;
     virtual void getTypeNameList(std::vector<ossimString>& typeList)const;
    
  protected:
-    // Hide from use.
-    ossimOpenCVImageSourceFactory();
-    ossimOpenCVImageSourceFactory(const ossimOpenCVImageSourceFactory&);
-    const ossimOpenCVImageSourceFactory& operator=(ossimOpenCVImageSourceFactory&);
- 
-    static ossimOpenCVImageSourceFactory* theInstance;
- TYPE_DATA};
+    ossimOpenCVPluginFactory();
+    ossimOpenCVPluginFactory(const ossimOpenCVPluginFactory&);
+    const ossimOpenCVPluginFactory& operator=(ossimOpenCVPluginFactory&);
+    static ossimOpenCVPluginFactory* theInstance;
+
+TYPE_DATA
+};
 
 #endif
