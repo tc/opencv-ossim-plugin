@@ -1,4 +1,4 @@
-// Copyright (C) 2000 ImageLinks Inc. 
+// Copyright (C) 2010 Argongra 
 //
 // OSSIM is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License 
@@ -15,11 +15,7 @@
 //
 // See the GPL in the COPYING.GPL file for more details.
 //
-// Author: Garrett Potts (gpotts@imagelinks)
-// Description: A brief description of the contents of the file.
-//
 //*************************************************************************
-// $Id: ossimSharedRgbToGreyFilter.cpp,v 1.10 2005/05/23 13:06:55 gpotts Exp $
 
 #include <ossim/base/ossimRefPtr.h>
 #include "ossimOpenCVPyrSegmentation.h"
