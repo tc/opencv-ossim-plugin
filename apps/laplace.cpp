@@ -18,7 +18,7 @@
 #include <ossim/imaging/ossimImageSourceFactoryRegistry.h>
 #include <ossim/imaging/ossimTiffWriter.h>
 
-#include "../ossimOpenCVLaplaceFilter.h"
+#include "../plugin/ossimOpenCVLaplaceFilter.h"
 
 #include <ossim/init/ossimInit.h>
 

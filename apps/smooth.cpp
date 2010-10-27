@@ -18,7 +18,7 @@
 #include <ossim/imaging/ossimImageSourceFactoryRegistry.h>
 #include <ossim/imaging/ossimTiffWriter.h>
 
-#include "../ossimOpenCVSmoothFilter.h"
+#include "../plugin/ossimOpenCVSmoothFilter.h"
 
 #include <ossim/init/ossimInit.h>
 

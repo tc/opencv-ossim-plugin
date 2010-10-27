@@ -18,7 +18,7 @@
 #include <ossim/imaging/ossimImageSourceFactoryRegistry.h>
 #include <ossim/imaging/ossimTiffWriter.h>
 
-#include "../ossimOpenCVGoodFeaturesToTrack.h"
+#include "../plugin/ossimOpenCVGoodFeaturesToTrack.h"
 
 #include <ossim/init/ossimInit.h>
 

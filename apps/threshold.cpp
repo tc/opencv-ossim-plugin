@@ -18,7 +18,7 @@
 #include <ossim/imaging/ossimImageSourceFactoryRegistry.h>
 #include <ossim/imaging/ossimTiffWriter.h>
 
-#include "../ossimOpenCVThresholdFilter.h"
+#include "../plugin/ossimOpenCVThresholdFilter.h"
 
 #include <ossim/init/ossimInit.h>
 

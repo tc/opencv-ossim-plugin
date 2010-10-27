@@ -18,7 +18,7 @@
 #include <ossim/imaging/ossimImageSourceFactoryRegistry.h>
 #include <ossim/imaging/ossimTiffWriter.h>
 
-#include "../ossimOpenCVDilateFilter.h"
+#include "../plugin/ossimOpenCVDilateFilter.h"
 
 #include <ossim/init/ossimInit.h>
 
