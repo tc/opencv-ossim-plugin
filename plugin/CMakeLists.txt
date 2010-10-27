@@ -2,19 +2,24 @@
 # Create OpenCV Library Plugin for OSSIM
 ###
 
+FILE(GLOB_RECURSE OSSIMPLUGIN_SRCS *.cpp)
+FILE(GLOB_RECURSE OSSIMPLUGIN_HEADERS *.h)
+
+
 ADD_LIBRARY(ossimopencv
-	ossimOpenCVCannyFilter.cpp
- 	ossimOpenCVDilateFilter.cpp
-	ossimOpenCVErodeFilter.cpp
-	ossimOpenCVSmoothFilter.cpp
-	ossimOpenCVLaplaceFilter.cpp
-	ossimOpenCVSobelFilter.cpp
-	ossimOpenCVThresholdFilter.cpp
-	ossimOpenCVGoodFeaturesToTrack.cpp
-	ossimOpenCVPyrSegmentation.cpp
-	ossimOpenCVPluginFactory.cpp
-	ossimOpenCVPluginInit.cpp
+	${OSSIMPLUGIN_SRCS}
 )
+
+ADD_LIBRARY(ossimopencv_plugin SHARED
+	${OSSIMPLUGIN_SRCS}
+)
+
+TARGET_LINK_LIBRARIES(ossimopencv_plugin 
+	${HIGHGUI_LIB}
+    ${CV_LIB}
+    ${CXCORE_LIB}
+    ${CVAUX_LIB}
+    ${OSSIM_LIB})
 
 IF(UNIX)
 	ADD_CUSTOM_COMMAND(OUTPUT ossimRegPluginLinux
