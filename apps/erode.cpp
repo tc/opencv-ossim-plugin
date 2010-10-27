@@ -18,7 +18,7 @@
 #include <ossim/imaging/ossimImageSourceFactoryRegistry.h>
 #include <ossim/imaging/ossimTiffWriter.h>
 
-#include "../ossimOpenCVErodeFilter.h"
+#include "../plugin/ossimOpenCVErodeFilter.h"
 
 #include <ossim/init/ossimInit.h>
 

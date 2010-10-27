@@ -20,7 +20,7 @@
 #include <ossim/imaging/ossimImageSourceFactoryRegistry.h>
 #include <ossim/imaging/ossimTiffWriter.h>
 
-#include "../ossimOpenCVCannyFilter.h"
+#include "../plugin/ossimOpenCVCannyFilter.h"
 
 #include <ossim/init/ossimInit.h>
 
