@@ -166,3 +166,41 @@ void ossimOpenCVErodeFilter::runUcharTransformation(ossimImageData* tile)
   theTile->validate(); 
 
 }
+
+/*
+* Methods to expose thresholds for adjustment through the GUI
+*/
+void ossimOpenCVErodeFilter::setProperty(ossimRefPtr<ossimProperty> property)
+{
+        if(!property) return;
+        ossimString name = property->getName();
+
+        if(name == "iterations")
+        {
+                theIterations = property->valueToString().toInt();
+        }
+		else
+		{
+		  ossimImageSourceFilter::setProperty(property);
+		}
+}
+
+ossimRefPtr<ossimProperty> ossimOpenCVErodeFilter::getProperty(const ossimString& name)const
+{
+        if(name == "iterations")
+        {
+                ossimNumericProperty* numeric = new ossimNumericProperty(name,
+                        ossimString::toString(theIterations),
+                        1, 5);
+                numeric->setNumericType(ossimNumericProperty::ossimNumericPropertyType_INT);
+                numeric->setCacheRefreshBit();
+                return numeric;
+        }
+        return ossimImageSourceFilter::getProperty(name);
+}
+
+void ossimOpenCVErodeFilter::getPropertyNames(std::vector<ossimString>& propertyNames)const
+{
+        ossimImageSourceFilter::getPropertyNames(propertyNames);
+        propertyNames.push_back("iterations");
+}

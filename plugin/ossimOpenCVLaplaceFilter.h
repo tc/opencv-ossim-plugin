@@ -69,10 +69,20 @@ public:
    virtual bool loadState(const ossimKeywordlist& kwl,
                           const char* prefix=0);
 
+   /*
+   * Methods to expose thresholds for adjustment through the GUI
+   */
+   virtual void setProperty(ossimRefPtr<ossimProperty> property);
+   virtual ossimRefPtr<ossimProperty> getProperty(const ossimString& name)const;
+   virtual void getPropertyNames(std::vector<ossimString>& propertyNames)const;
+
 protected:
    ossimRefPtr<ossimImageData> theTile; ///< Output tile
    int theApertureSize; ///< Size of the extended Laplace kernel, must be 1, 3, 5 or 7 
    void runUcharTransformation(ossimImageData* tile); 
+
+private:
+	void setApertureSize(const int);
 
 TYPE_DATA
 };
