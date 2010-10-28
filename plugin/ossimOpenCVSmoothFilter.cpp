@@ -29,6 +29,8 @@
 #include <ossim/imaging/ossimImageSourceFactoryRegistry.h>
 #include <ossim/imaging/ossimU8ImageData.h>
 #include <ossim/base/ossimRefPtr.h>
+#include <ossim/base/ossimNumericProperty.h>
+#include <ossim/base/ossimStringProperty.h>
 
 RTTI_DEF1(ossimOpenCVSmoothFilter, "ossimOpenCVSmoothFilter", ossimImageSourceFilter)
 
@@ -179,29 +181,7 @@ bool ossimOpenCVSmoothFilter::loadState(const ossimKeywordlist& kwl, const char*
    lookup = kwl.find(prefix, "smooth_type");
    if(lookup)
    {
-	if(strcmp(lookup,"CV_BLUR_NO_SCALE")==0){
-		theSmoothType=0; 		
-	        printf("Read from spec file. smooth_type: %s\n",lookup);
-	}
-	else if(strcmp(lookup,"CV_BLUR")==0){
-		theSmoothType=1; 		
-	        printf("Read from spec file. smooth_type: %s\n",lookup);
-	}
-	else if(strcmp(lookup,"CV_GAUSSIAN")==0){
-		theSmoothType=2; 		
-	        printf("Read from spec file. smooth_type: %s\n",lookup);
-	}
-	else if(strcmp(lookup,"CV_MEDIAN")==0){
-		theSmoothType=3; 		
-	        printf("Read from spec file. smooth_type: %s\n",lookup);
-	}
-	else if(strcmp(lookup,"CV_BILATERAL")==0){
-		theSmoothType=4; 		
-        	printf("Read from spec file. smooth_type: %s\n",lookup);
-	}
-	else {
-		printf("%s not supported as smooth_type parameter for OpenCVSmoothFilter!\nDefault smooth_type: CV_GAUSSIAN\n",lookup);
-	}
+	   setSmoothType(lookup);
    }
    return true;
 }
@@ -233,3 +213,139 @@ void ossimOpenCVSmoothFilter::runUcharTransformation(ossimImageData* tile)
 	theTile->validate(); 
  
    }
+
+void ossimOpenCVSmoothFilter::setSmoothType(const ossimString lookup)
+{
+	if(strcmp(lookup,"CV_BLUR_NO_SCALE")==0){
+		theSmoothType=0; 		
+	        printf("Read from spec file. smooth_type: %s\n",lookup);
+	}
+	else if(strcmp(lookup,"CV_BLUR")==0){
+		theSmoothType=1; 		
+	        printf("Read from spec file. smooth_type: %s\n",lookup);
+	}
+	else if(strcmp(lookup,"CV_GAUSSIAN")==0){
+		theSmoothType=2; 		
+	        printf("Read from spec file. smooth_type: %s\n",lookup);
+	}
+	else if(strcmp(lookup,"CV_MEDIAN")==0){
+		theSmoothType=3; 		
+	        printf("Read from spec file. smooth_type: %s\n",lookup);
+	}
+	else if(strcmp(lookup,"CV_BILATERAL")==0){
+		theSmoothType=4; 		
+        	printf("Read from spec file. smooth_type: %s\n",lookup);
+	}
+	else {
+		printf("%s not supported as smooth_type parameter for OpenCVSmoothFilter!\nDefault smooth_type: CV_GAUSSIAN\n",lookup);
+	}	
+}
+
+void ossimOpenCVSmoothFilter::getSmoothTypeList(
+   std::vector<ossimString>& list) const
+{
+   list.resize(5);
+
+   list[0] = ossimString("CV_BLUR_NO_SCALE");
+   list[1] = ossimString("CV_BLUR");
+   list[2] = ossimString("CV_GAUSSIAN");
+   list[3] = ossimString("CV_MEDIAN");
+   list[4] = ossimString("CV_BILATERAL");
+}
+
+ossimRefPtr<ossimProperty> ossimOpenCVSmoothFilter::getProperty(const ossimString& name)const
+{
+   if (name == "param1")
+   {
+	   ossimProperty* prop = new ossimNumericProperty("param1",
+		   ossimString::toString(theParam1));
+	   prop->setCacheRefreshBit();
+	   return prop;
+   }
+   else if (name == "param2")
+   {
+	   ossimNumericProperty* prop = new ossimNumericProperty("param2",
+		   ossimString::toString(theParam2));
+	   prop->setCacheRefreshBit();
+	   return prop;
+   }
+   else if (name == "param3")
+   {
+	   ossimNumericProperty* prop = new ossimNumericProperty("param3",
+		   ossimString::toString(theParam3));
+	   prop->setNumericType(ossimNumericProperty::ossimNumericPropertyType_FLOAT64);
+	   prop->setCacheRefreshBit();
+	   return prop;
+   }
+   else if (name == "param4")
+   {
+	   ossimNumericProperty* prop = new ossimNumericProperty("param4",
+		   ossimString::toString(theParam4));
+	   prop->setNumericType(ossimNumericProperty::ossimNumericPropertyType_FLOAT64);
+	   prop->setCacheRefreshBit();
+	   return prop;
+   }
+   else if (name == "smooth_type")
+   {
+		std::vector<ossimString> constraintList;
+		getSmoothTypeList(constraintList);
+		ossimString value = getSmoothTypeString();
+		ossimProperty* prop = new ossimStringProperty("smooth_type",
+														value,
+														false,
+														constraintList);
+		prop->setCacheRefreshBit();
+		return prop;
+   }
+   return ossimImageSourceFilter::getProperty(name);
+}
+
+void ossimOpenCVSmoothFilter::getPropertyNames(std::vector<ossimString>& propertyNames)const
+{
+    ossimImageSourceFilter::getPropertyNames(propertyNames);
+	propertyNames.push_back("param1");
+    propertyNames.push_back("param2");
+	propertyNames.push_back("param3");
+	propertyNames.push_back("param4");
+    propertyNames.push_back("smooth_type");
+}
+
+void ossimOpenCVSmoothFilter::setProperty(ossimRefPtr<ossimProperty> property)
+{
+    if(!property.valid())
+	{
+		return;
+	} 
+    ossimString name = property->getName();
+	if(name == "param1")
+    {
+		theParam1 = property->valueToString().toInt();
+    }
+    else if(name == "param2")
+    {
+		theParam2 = property->valueToString().toInt();
+    }
+    else if(name == "param3")
+    {
+        theParam3 = property->valueToString().toDouble();
+    }
+	else if(name == "param4")
+    {
+        theParam4 = property->valueToString().toDouble();
+    }
+	else if(name == "smooth_type")
+	{
+		setSmoothType(property->valueToString());
+	}
+	else
+	{
+		ossimImageSourceFilter::setProperty(property);
+	}
+}
+
+ossimString ossimOpenCVSmoothFilter::getSmoothTypeString()const
+{
+   std::vector<ossimString> list;
+   getSmoothTypeList(list);
+   return list[theSmoothType];
+}

@@ -237,12 +237,14 @@ ossimRefPtr<ossimProperty> ossimOpenCVThresholdFilter::getProperty(const ossimSt
    {
 	   ossimProperty* prop = new ossimNumericProperty("threshold",
 		   ossimString::toString(theThreshold));
+	   prop->setCacheRefreshBit();
 	   return prop;
    }
    else if (name == "max_value")
    {
 	   ossimProperty* prop = new ossimNumericProperty("max_value",
 		   ossimString::toString(theMaxValue));
+	   prop->setCacheRefreshBit();
 	   return prop;
    }
    else if (name == "threshold_type")
