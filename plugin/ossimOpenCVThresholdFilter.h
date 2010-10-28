@@ -38,10 +38,23 @@ Also, the special value <b>CV_THRESH_OTSU</b> may be combined with one of the ab
 
 **/
 
+
 class ossimOpenCVThresholdFilter : public ossimImageSourceFilter
 {
 
 public:
+/*
+   enum ossimOpenCVThresholdFilterType
+   {
+		CV_THRESH_BINARY=0,
+		CV_THRESH_BINARY_INV=1,
+		CV_THRESH_TRUNC=2,
+		CV_THRESH_TOZERO=3,
+		CV_THRESH_TOZERO_INV=4,
+		CV_THRESH_MASK=5,
+		CV_THRESH_OTSU=6
+   };
+*/
    ossimOpenCVThresholdFilter(ossimObject* owner=NULL);
 
    virtual ~ossimOpenCVThresholdFilter();
@@ -73,12 +86,27 @@ public:
    virtual bool loadState(const ossimKeywordlist& kwl,
                           const char* prefix=0);
 
+   /*
+   * Methods to expose thresholds for adjustment through the GUI
+   */
+   virtual void setProperty(ossimRefPtr<ossimProperty> property);
+   virtual ossimRefPtr<ossimProperty> getProperty(const ossimString& name)const;
+   virtual void getPropertyNames(std::vector<ossimString>& propertyNames)const;
+
+
 protected:
    ossimRefPtr<ossimImageData> theTile;///< Output tile
    double theThreshold;///< Threshold value
    double theMaxValue;///< Maximum value to use with CV_THRESH_BINARY and CV_THRESH_BINARY_INV  thresholding types
    int theThresholdType;///< Thresholding type (see the detailed description)
    void runUcharTransformation(ossimImageData* tile);
+
+private:
+	void setThresholdtype(const ossimString& lookup);///< Lookup Threshold Type
+	void getThresholdTypeList(std::vector<ossimString>& list) const;
+	ossimString getThresholdTypeString() const;
+
+
 
 TYPE_DATA
 };
