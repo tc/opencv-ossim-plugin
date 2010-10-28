@@ -27,6 +27,7 @@
 #include <ossim/imaging/ossimImageSourceFactoryRegistry.h>
 #include <ossim/base/ossimRefPtr.h>
 #include <ossim/base/ossimNumericProperty.h>
+#include <ossim/base/ossimStringProperty.h>
 
 #include "ossimOpenCVThresholdFilter.h"
 
@@ -123,29 +124,60 @@ bool ossimOpenCVThresholdFilter::saveState(ossimKeywordlist& kwl, const char* pr
 	
 	switch(theThresholdType) {
 		case 0:
-		   kwl.add(prefix,"smooth_type","CV_THRESH_BINARY",true);
+		   kwl.add(prefix,"threshold_type","CV_THRESH_BINARY",true);
 		break;
 		case 1:
-		   kwl.add(prefix,"smooth_type","CV_THRESH_BINARY_INV",true);
+		   kwl.add(prefix,"threshold_type","CV_THRESH_BINARY_INV",true);
 		break;
 		case 2:
-		   kwl.add(prefix,"smooth_type","CV_THRESH_TRUNC",true);
+		   kwl.add(prefix,"threshold_type","CV_THRESH_TRUNC",true);
 		break;
 		case 3:
-		   kwl.add(prefix,"smooth_type","CV_THRESH_TOZERO",true);
+		   kwl.add(prefix,"threshold_type","CV_THRESH_TOZERO",true);
 		break;
 		case 4:
-		   kwl.add(prefix,"smooth_type","CV_THRESH_TOZERO_INV",true);
+		   kwl.add(prefix,"threshold_type","CV_THRESH_TOZERO_INV",true);
 		break;
 		case 7:
-		   kwl.add(prefix,"smooth_type","CV_THRESH_MASK",true);
+		   kwl.add(prefix,"threshold_type","CV_THRESH_MASK",true);
 		break;
 		case 8:
-		   kwl.add(prefix,"smooth_type","CV_THRESH_OTSU",true);
+		   kwl.add(prefix,"threshold_type","CV_THRESH_OTSU",true);
 		break;
    	}
 
 	return true;
+}
+
+void ossimOpenCVThresholdFilter::setThresholdtype(const ossimString& lookup)
+{
+	if(lookup)
+	{
+		if(strcmp(lookup,"CV_THRESH_BINARY")==0){
+			theThresholdType=0; 
+		}
+		else if(strcmp(lookup,"CV_THRESH_BINARY_INV")==0){
+			theThresholdType=1; 		
+		}
+		else if(strcmp(lookup,"CV_THRESH_TRUNC")==0){
+			theThresholdType=2; 		
+		}
+		else if(strcmp(lookup,"CV_THRESH_TOZERO")==0){
+			theThresholdType=3; 		
+		}
+		else if(strcmp(lookup,"CV_THRESH_TOZERO_INV")==0){
+			theThresholdType=4; 		
+		}
+		else if(strcmp(lookup,"CV_THRESH_MASK")==0){
+			theThresholdType=7; 		
+		}
+		else if(strcmp(lookup,"CV_THRESH_OTSU")==0){
+			theThresholdType=8; 		
+		}
+		else {
+			printf("%s not supported as threshold_type parameter for OpenCVThresholdFilter!\nDefault threshold_type: CV_THRESH_BINARY\n",lookup);
+		}
+	}
 }
 
 bool ossimOpenCVThresholdFilter::loadState(const ossimKeywordlist& kwl, const char* prefix)
@@ -165,40 +197,8 @@ bool ossimOpenCVThresholdFilter::loadState(const ossimKeywordlist& kwl, const ch
  		printf("Read from spec file. max_value: %f\n",theMaxValue);
 	}
 	lookup = kwl.find(prefix, "threshold_type");
-	if(lookup)
-	{
-		if(strcmp(lookup,"CV_THRESH_BINARY")==0){
-			theThresholdType=0; 
-			printf("Read from spec file. smooth_type: %s\n",lookup);
-		}
-		else if(strcmp(lookup,"CV_THRESH_BINARY_INV")==0){
-			theThresholdType=1; 		
-			printf("Read from spec file. smooth_type: %s\n",lookup);
-		}
-		else if(strcmp(lookup,"CV_THRESH_TRUNC")==0){
-			theThresholdType=2; 		
-			printf("Read from spec file. smooth_type: %s\n",lookup);
-		}
-		else if(strcmp(lookup,"CV_THRESH_TOZERO")==0){
-			theThresholdType=3; 		
-			printf("Read from spec file. smooth_type: %s\n",lookup);
-		}
-		else if(strcmp(lookup,"CV_THRESH_TOZERO_INV")==0){
-			theThresholdType=4; 		
-			printf("Read from spec file. smooth_type: %s\n",lookup);
-		}
-		else if(strcmp(lookup,"CV_THRESH_MASK")==0){
-			theThresholdType=7; 		
-			printf("Read from spec file. smooth_type: %s\n",lookup);
-		}
-		else if(strcmp(lookup,"CV_THRESH_OTSU")==0){
-			theThresholdType=8; 		
-			printf("Read from spec file. smooth_type: %s\n",lookup);
-		}
-		else {
-			printf("%s not supported as threshold_type parameter for OpenCVSmoothFilter!\nDefault threshold_type: CV_THRESH_BINARY\n",lookup);
-		}
-	}
+	printf("Read from spec file. threshold_type: %s\n",lookup);
+	setThresholdtype(lookup);
   
 	return true;
 }
@@ -231,4 +231,89 @@ void ossimOpenCVThresholdFilter::runUcharTransformation(ossimImageData* tile)
 
 }
 
+ossimRefPtr<ossimProperty> ossimOpenCVThresholdFilter::getProperty(const ossimString& name)const
+{
+   if(name == "threshold")
+   {
+	   ossimProperty* prop = new ossimNumericProperty("threshold",
+		   ossimString::toString(theThreshold));
+	   return prop;
+   }
+   else if (name == "max_value")
+   {
+	   ossimProperty* prop = new ossimNumericProperty("max_value",
+		   ossimString::toString(theMaxValue));
+	   return prop;
+   }
+   else if (name == "threshold_type")
+   {
+		std::vector<ossimString> constraintList;
+		getThresholdTypeList(constraintList);
+		ossimString value = getThresholdTypeString();
+		ossimProperty* prop = new ossimStringProperty("threshold_type",
+														value,
+														false,
+														constraintList);
+		prop->setCacheRefreshBit();
+		return prop;
+   }
+   return ossimImageSourceFilter::getProperty(name);
+}
 
+void ossimOpenCVThresholdFilter::getPropertyNames(std::vector<ossimString>& propertyNames)const
+{
+        ossimImageSourceFilter::getPropertyNames(propertyNames);
+        propertyNames.push_back("threshold");
+        propertyNames.push_back("max_value");
+        propertyNames.push_back("threshold_type");
+}
+
+void ossimOpenCVThresholdFilter::setProperty(ossimRefPtr<ossimProperty> property)
+{
+        if(!property.valid())
+		{
+			return;
+		} 
+        ossimString name = property->getName();
+
+        if(name == "threshold")
+        {
+                theThreshold = property->valueToString().toDouble();
+        }
+        else if(name == "max_value")
+        {
+                theMaxValue = property->valueToString().toDouble();
+        }
+        else if(name == "threshold_type")
+        {
+                setThresholdtype(property->valueToString());
+        }
+		else
+		{
+		  ossimImageSourceFilter::setProperty(property);
+		}
+}
+
+void ossimOpenCVThresholdFilter::getThresholdTypeList(
+   std::vector<ossimString>& list) const
+{
+   list.resize(7);
+
+   list[0] = ossimString("CV_THRESH_BINARY");
+   list[1] = ossimString("CV_THRESH_BINARY_INV");
+   list[2] = ossimString("CV_THRESH_TRUNC");
+   list[3] = ossimString("CV_THRESH_TOZERO");
+   list[4] = ossimString("CV_THRESH_TOZERO_INV");
+   //TODO: THRESH_MASK does not seem to exist any more in latest opencv
+   list[5] = ossimString("CV_THRESH_MASK");
+   list[6] = ossimString("CV_THRESH_OTSU");
+}
+
+ossimString ossimOpenCVThresholdFilter::getThresholdTypeString() const
+{
+   std::vector<ossimString> list;
+   getThresholdTypeList(list);
+   int type = theThresholdType>4?(theThresholdType-2):theThresholdType;
+   printf("%d Threshold Type",type);
+   return list[type];
+}
