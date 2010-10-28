@@ -57,6 +57,13 @@ public:
          return ossimString("OpenCV Smooth Filter");
       }   
 
+   /*
+   * Methods to expose thresholds for adjustment through the GUI
+   */
+   virtual void setProperty(ossimRefPtr<ossimProperty> property);
+   virtual ossimRefPtr<ossimProperty> getProperty(const ossimString& name)const;
+   virtual void getPropertyNames(std::vector<ossimString>& propertyNames)const;
+
 protected:
    ossimRefPtr<ossimImageData> theTile;
    void runUcharTransformation(ossimImageData* tile);
@@ -65,6 +72,11 @@ protected:
    int theParam2;///<aperture height
    double theParam3;///<If square Gaussian kernel, the Gaussian standard desviation. If non-square Gaussian kernel, the Gaussian standard desviation in the horizontal direction
    double theParam4;///<If non-square Gaussian kernel, the Gaussian standard desviation in the vertical direction 
+
+private:
+	void setSmoothType(const ossimString);
+	void getSmoothTypeList(std::vector<ossimString>&) const;
+	ossimString getSmoothTypeString()const;
 
 TYPE_DATA
 };
