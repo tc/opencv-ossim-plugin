@@ -26,6 +26,7 @@
 #include <ossim/imaging/ossimImageSourceFactoryBase.h>
 #include <ossim/imaging/ossimImageSourceFactoryRegistry.h>
 #include <ossim/base/ossimRefPtr.h>
+#include <ossim/base/ossimNumericProperty.h>
 
 #include "ossimOpenCVLaplaceFilter.h"
 
@@ -146,13 +147,7 @@ bool ossimOpenCVLaplaceFilter::loadState(const ossimKeywordlist& kwl, const char
    const char* lookup = kwl.find(prefix, "aperture_size");
    if(lookup)
    {
-      theApertureSize = ossimString(lookup).toInt();
-      if( theApertureSize < 1 || theApertureSize>7 || theApertureSize%2==0){
-	      printf("ERROR: aperture_size not supported! Must be 1, 3, 5 or 7! Default aperture_size: 3\n");
-	      theApertureSize=3;
-      } else {
-	      printf("Read from spec file. aperture_size: %d\n",theApertureSize);
-      }
+      setApertureSize(ossimString(lookup).toInt());
    }
    return true;
 }
@@ -184,4 +179,53 @@ void ossimOpenCVLaplaceFilter::runUcharTransformation(ossimImageData* tile) {
 	}
 
 	theTile->validate(); 
+}
+
+void ossimOpenCVLaplaceFilter::setApertureSize(const int apsize)
+{
+  theApertureSize = apsize;
+  if( theApertureSize < 1 || theApertureSize>7 || theApertureSize%2==0){
+      printf("ERROR: aperture_size not supported! Must be 1, 3, 5 or 7! Default aperture_size: 3\n");
+      theApertureSize=3;
+  } else {
+      printf("Read from spec file. aperture_size: %d\n",theApertureSize);
+  }
+}
+
+/*
+* Methods to expose thresholds for adjustment through the GUI
+*/
+void ossimOpenCVLaplaceFilter::setProperty(ossimRefPtr<ossimProperty> property)
+{
+        if(!property) return;
+        ossimString name = property->getName();
+
+        if(name == "aperture_size")
+        {
+                setApertureSize(property->valueToString().toInt());
+        }
+		else
+		{
+		  ossimImageSourceFilter::setProperty(property);
+		}
+}
+
+ossimRefPtr<ossimProperty> ossimOpenCVLaplaceFilter::getProperty(const ossimString& name)const
+{
+        if(name == "aperture_size")
+        {
+                ossimNumericProperty* numeric = new ossimNumericProperty(name,
+                        ossimString::toString(theApertureSize),
+                        1, 7);
+                numeric->setNumericType(ossimNumericProperty::ossimNumericPropertyType_INT);
+                numeric->setCacheRefreshBit();
+                return numeric;
+        }
+        return ossimImageSourceFilter::getProperty(name);
+}
+
+void ossimOpenCVLaplaceFilter::getPropertyNames(std::vector<ossimString>& propertyNames)const
+{
+        ossimImageSourceFilter::getPropertyNames(propertyNames);
+        propertyNames.push_back("aperture_size");
 }
