@@ -27,6 +27,7 @@
 #include <ossim/imaging/ossimImageSourceFactoryBase.h>
 #include <ossim/imaging/ossimImageSourceFactoryRegistry.h>
 #include <ossim/base/ossimRefPtr.h>
+#include <ossim/base/ossimNumericProperty.h>
 
 RTTI_DEF1(ossimOpenCVSobelFilter, "ossimOpenCVSobelFilter", ossimImageSourceFilter)
 
@@ -172,15 +173,20 @@ bool ossimOpenCVSobelFilter::loadState(const ossimKeywordlist& kwl, const char* 
    lookup = kwl.find(prefix, "aperture_size");
    if(lookup)
    {
-      theApertureSize = ossimString(lookup).toInt();
-      if( theApertureSize < 1 || theApertureSize>7 || theApertureSize%2==0){
-	      printf("ERROR: aperture_size not supported! Must be 1, 3, 5 or 7! Default aperture_size: 3\n");
-	      theApertureSize=3;
-      } else {
-	      printf("Read from spec file. aperture_size: %d\n",theApertureSize);
-      }
+      setApertureSize(ossimString(lookup));
    }
    return true;
+}
+
+void ossimOpenCVSobelFilter::setApertureSize(const ossimString lookup)
+{
+	theApertureSize = lookup.toInt();
+	if( theApertureSize < 1 || theApertureSize>7 || theApertureSize%2==0){
+      printf("ERROR: aperture_size not supported! Must be 1, 3, 5 or 7! Default aperture_size: 3\n");
+      theApertureSize=3;
+	} else {
+      printf("Read from spec file. aperture_size: %d\n",theApertureSize);
+	}
 }
 
 void ossimOpenCVSobelFilter::runUcharTransformation(ossimImageData* tile) {
@@ -210,4 +216,63 @@ void ossimOpenCVSobelFilter::runUcharTransformation(ossimImageData* tile) {
 	}
 
 	theTile->validate(); 
+}
+
+void ossimOpenCVSobelFilter::setProperty(ossimRefPtr<ossimProperty> property)
+{
+	if(!property.valid())
+	{
+		return;
+	} 
+    ossimString name = property->getName();
+	if(name == "xorder")
+    {
+		theXOrder = property->valueToString().toInt();
+    }
+    else if(name == "yorder")
+    {
+		theYOrder = property->valueToString().toInt();
+    }
+    else if(name == "aperture_size")
+    {
+        setApertureSize(property->valueToString());
+    }
+	else
+	{
+		ossimImageSourceFilter::setProperty(property);
+	}
+}
+
+ossimRefPtr<ossimProperty> ossimOpenCVSobelFilter::getProperty(const ossimString& name)const
+{
+	if (name == "xorder")
+   {
+	   ossimProperty* prop = new ossimNumericProperty("xorder",
+		   ossimString::toString(theXOrder));
+	   prop->setCacheRefreshBit();
+	   return prop;
+   }
+   else if (name == "yorder")
+   {
+	   ossimNumericProperty* prop = new ossimNumericProperty("yorder",
+		   ossimString::toString(theYOrder));
+	   prop->setCacheRefreshBit();
+	   return prop;
+   }
+   else if (name == "aperture_size")
+   {
+	   ossimNumericProperty* prop = new ossimNumericProperty("aperture_size",
+		   ossimString::toString(theApertureSize),1,7);
+	   prop->setNumericType(ossimNumericProperty::ossimNumericPropertyType_FLOAT64);
+	   prop->setCacheRefreshBit();
+	   return prop;
+   }
+   return ossimImageSourceFilter::getProperty(name);
+}
+void ossimOpenCVSobelFilter::getPropertyNames(std::vector<ossimString>& propertyNames)const
+{
+	ossimImageSourceFilter::getPropertyNames(propertyNames);
+	propertyNames.push_back("xorder");
+	propertyNames.push_back("yorder");
+	propertyNames.push_back("aperture_size");
 }
