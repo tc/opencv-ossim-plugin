@@ -49,6 +49,9 @@ public:
     */
    virtual bool loadState(const ossimKeywordlist& kwl,
                           const char* prefix=0);
+
+   //TODO: Add properties for Squares
+
    std::vector< ossimAnnotationObject * > 	theAnnotationObjectList;
 protected:
    ossimRefPtr<ossimImageData> theBlankTile;

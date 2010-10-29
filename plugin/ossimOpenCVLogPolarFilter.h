@@ -44,6 +44,8 @@ public:
    virtual bool loadState(const ossimKeywordlist& kwl,
                           const char* prefix=0);
 
+   //TODO: Add properties LogPolar
+
 protected:
    ossimRefPtr<ossimImageData> theBlankTile;
    ossimRefPtr<ossimImageData> theTile;

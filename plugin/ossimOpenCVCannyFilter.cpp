@@ -29,6 +29,7 @@
 #include <ossim/imaging/ossimImageSourceFactoryBase.h>
 #include <ossim/imaging/ossimImageSourceFactoryRegistry.h>
 #include <ossim/base/ossimRefPtr.h>
+#include <ossim/base/ossimNumericProperty.h>
 
 RTTI_DEF1(ossimOpenCVCannyFilter, "ossimOpenCVCannyFilter", ossimImageSourceFilter)
 
@@ -213,4 +214,64 @@ void ossimOpenCVCannyFilter::runUcharTransformation(ossimImageData* tile)
 	}
 
 	theTile->validate();   
+}
+
+void ossimOpenCVCannyFilter::setProperty(ossimRefPtr<ossimProperty> property)
+{
+	if(!property) return;
+    ossimString name = property->getName();
+
+    if(name == "theshold1")
+    {
+            theThreshold1 = property->valueToString().toDouble();
+    }
+	else if(name == "theshold2")
+    {
+            theThreshold2 = property->valueToString().toDouble();
+    }
+	else if(name == "aperture_size")
+    {
+            theApertureSize = property->valueToString().toInt();
+    }
+	else
+	{
+	  ossimImageSourceFilter::setProperty(property);
+	}
+}
+
+ossimRefPtr<ossimProperty> ossimOpenCVCannyFilter::getProperty(const ossimString& name)const
+{
+	if(name == "threshold1")
+    {
+            ossimNumericProperty* numeric = new ossimNumericProperty(name,
+                    ossimString::toString(theThreshold1));
+            numeric->setNumericType(ossimNumericProperty::ossimNumericPropertyType_FLOAT64);
+            numeric->setCacheRefreshBit();
+            return numeric;
+    }
+	if(name == "threshold2")
+    {
+            ossimNumericProperty* numeric = new ossimNumericProperty(name,
+                    ossimString::toString(theThreshold2));
+            numeric->setNumericType(ossimNumericProperty::ossimNumericPropertyType_FLOAT64);
+            numeric->setCacheRefreshBit();
+            return numeric;
+    }
+	if(name == "aperture_size")
+    {
+            ossimNumericProperty* numeric = new ossimNumericProperty(name,
+                    ossimString::toString(theApertureSize),3,7);
+			//TODO: The aperture size can only be 3,5,7.
+            numeric->setCacheRefreshBit();
+            return numeric;
+    }
+    return ossimImageSourceFilter::getProperty(name);
+}
+
+void ossimOpenCVCannyFilter::getPropertyNames(std::vector<ossimString>& propertyNames)const
+{
+	ossimImageSourceFilter::getPropertyNames(propertyNames);
+	propertyNames.push_back("threshold1");
+	propertyNames.push_back("threshold2");
+	propertyNames.push_back("aperture_size");
 }
