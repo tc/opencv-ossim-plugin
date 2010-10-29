@@ -44,6 +44,13 @@ public:
    virtual bool saveState(ossimKeywordlist& kwl, const char* prefix=0)const;
    virtual bool loadState(const ossimKeywordlist& kwl, const char* prefix=0);
 
+   /*
+   * Methods to expose thresholds for adjustment through the GUI
+   */
+   virtual void setProperty(ossimRefPtr<ossimProperty> property);
+   virtual ossimRefPtr<ossimProperty> getProperty(const ossimString& name)const;
+   virtual void getPropertyNames(std::vector<ossimString>& propertyNames)const;
+
 protected:
    ossimRefPtr<ossimImageData> theTile;
    void runUcharTransformation(ossimImageData* tile);

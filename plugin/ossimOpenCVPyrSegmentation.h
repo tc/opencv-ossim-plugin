@@ -59,6 +59,8 @@ public:
     */
    virtual bool loadState(const ossimKeywordlist& kwl, const char* prefix=0);
 
+   //TODO: Add properties for PyrSegmentation
+
 protected:
    ossimRefPtr<ossimImageData> theTile;///< Output tile
    int theLevel; ///< Maximum level of the pyramid for the segmentation

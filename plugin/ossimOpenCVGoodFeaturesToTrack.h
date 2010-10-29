@@ -63,6 +63,8 @@ public:
     */
    virtual bool loadState(const ossimKeywordlist& kwl, const char* prefix=0);
 
+   //TODO: Add properties GoodFeatures
+
    std::vector<ossimDpt> theKeyPoints;
 
 protected:
