@@ -26,7 +26,7 @@
 #include "ossimOpenCVLaplaceFilter.h"
 #include "ossimOpenCVGoodFeaturesToTrack.h"
 #include "ossimOpenCVPyrSegmentation.h"
-
+#include "ossimOpenCVPyrSegmentation.h"
 #include "ossimOpenCVPluginFactory.h"
 
 #include <ossim/base/ossimKeywordNames.h>
@@ -95,6 +95,7 @@ ossimObject* ossimOpenCVPluginFactory::createObject(const ossimString& name)cons
    {
       return new ossimOpenCVGoodFeaturesToTrack;
    }
+   //TODO: Add option to create LogPolarFilter
    return NULL;
 }
 

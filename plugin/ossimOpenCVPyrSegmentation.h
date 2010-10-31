@@ -59,7 +59,12 @@ public:
     */
    virtual bool loadState(const ossimKeywordlist& kwl, const char* prefix=0);
 
-   //TODO: Add properties for PyrSegmentation
+   /*
+   * Methods to expose thresholds for adjustment through the GUI
+   */
+   virtual void setProperty(ossimRefPtr<ossimProperty> property);
+   virtual ossimRefPtr<ossimProperty> getProperty(const ossimString& name)const;
+   virtual void getPropertyNames(std::vector<ossimString>& propertyNames)const;
 
 protected:
    ossimRefPtr<ossimImageData> theTile;///< Output tile
