@@ -28,6 +28,7 @@
 #include <ossim/imaging/ossimImageSourceFactoryRegistry.h>
 #include <ossim/base/ossimRefPtr.h>
 #include <ossim/imaging/ossimAnnotationPolyObject.h>
+#include <ossim/base/ossimNumericProperty.h>
 
 RTTI_DEF1(ossimOpenCVPyrSegmentation, "ossimOpenCVPyrSegmentation", ossimImageSourceFilter)
 
@@ -162,7 +163,7 @@ void ossimOpenCVPyrSegmentation::runUcharTransformation(ossimImageData* tile)
 	char* bDst;
 
 	CvSeq *comp; // pointer to the output sequence of the segmented components
-	CvConnectedComp * cc; // pointer to a segmented component
+	//CvConnectedComp * cc; // pointer to a segmented component
 	int n_comp;  // number of segmented components in the output sequence
 	CvMemStorage *storage; 
 	int nChannels = tile->getNumberOfBands();
@@ -209,4 +210,63 @@ void ossimOpenCVPyrSegmentation::runUcharTransformation(ossimImageData* tile)
 
 
 
+}
+
+void ossimOpenCVPyrSegmentation::setProperty(ossimRefPtr<ossimProperty> property)
+{
+	if(!property) return;
+    ossimString name = property->getName();
+
+    if(name == "theshold1")
+    {
+            theThreshold1 = property->valueToString().toDouble();
+    }
+	else if(name == "theshold2")
+    {
+            theThreshold2 = property->valueToString().toDouble();
+    }
+	else if(name == "level")
+    {
+            theLevel = property->valueToString().toInt();
+    }
+	else
+	{
+	  ossimImageSourceFilter::setProperty(property);
+	}
+}
+
+ossimRefPtr<ossimProperty> ossimOpenCVPyrSegmentation::getProperty(const ossimString& name)const
+{
+	if(name == "threshold1")
+    {
+            ossimNumericProperty* numeric = new ossimNumericProperty(name,
+                    ossimString::toString(theThreshold1));
+            numeric->setNumericType(ossimNumericProperty::ossimNumericPropertyType_FLOAT64);
+            numeric->setCacheRefreshBit();
+            return numeric;
+    }
+	if(name == "threshold2")
+    {
+            ossimNumericProperty* numeric = new ossimNumericProperty(name,
+                    ossimString::toString(theThreshold2));
+            numeric->setNumericType(ossimNumericProperty::ossimNumericPropertyType_FLOAT64);
+            numeric->setCacheRefreshBit();
+            return numeric;
+    }
+	if(name == "level")
+    {
+            ossimNumericProperty* numeric = new ossimNumericProperty(name,
+                    ossimString::toString(theLevel),1,6);
+            numeric->setCacheRefreshBit();
+            return numeric;
+    }
+    return ossimImageSourceFilter::getProperty(name);
+}
+
+void ossimOpenCVPyrSegmentation::getPropertyNames(std::vector<ossimString>& propertyNames)const
+{
+	ossimImageSourceFilter::getPropertyNames(propertyNames);
+	propertyNames.push_back("threshold1");
+	propertyNames.push_back("threshold2");
+	propertyNames.push_back("level");
 }

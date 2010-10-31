@@ -27,6 +27,7 @@
 #include <ossim/imaging/ossimImageSourceFactoryBase.h>
 #include <ossim/imaging/ossimImageSourceFactoryRegistry.h>
 #include <ossim/base/ossimRefPtr.h>
+#include <ossim/base/ossimNumericProperty.h>
 
 RTTI_DEF1(ossimOpenCVLogPolarFilter, "ossimOpenCVLogPolarFilter", ossimImageSourceFilter)
 
@@ -171,7 +172,7 @@ void ossimOpenCVLogPolarFilter::runUcharTransformation(ossimImageData* tile)
 
    input=cvCreateImageHeader(cvSize(tile->getWidth(),tile->getHeight()),8,1);
    output=cvCreateImageHeader(cvSize(tile->getWidth(),tile->getHeight()),8,1);
-   char* bandSrc[3];//FXIME tile->getNumberOfBands()
+   char* bandSrc[3];//TODO: Use Vectors instead of arrays for variable band numbers
    char* bandDest;
    
       bandSrc[0]  = static_cast< char*>(tile->getBuf(0));
@@ -184,4 +185,64 @@ cvLogPolar( input, output, cvPoint2D32f(thecenter_x,thecenter_y),theM,CV_INTER_L
 
 
    theTile->validate();
+}
+
+void ossimOpenCVLogPolarFilter::setProperty(ossimRefPtr<ossimProperty> property)
+{
+	if(!property) return;
+    ossimString name = property->getName();
+
+    if(name == "center_x")
+    {
+            thecenter_x = property->valueToString().toDouble();
+    }
+	else if(name == "center_y")
+    {
+            thecenter_x = property->valueToString().toDouble();
+    }
+	else if(name == "M")
+    {
+            theM = property->valueToString().toDouble();
+    }
+	else
+	{
+	  ossimImageSourceFilter::setProperty(property);
+	}
+}
+
+ossimRefPtr<ossimProperty> ossimOpenCVLogPolarFilter::getProperty(const ossimString& name)const
+{
+	if(name == "center_x")
+    {
+            ossimNumericProperty* numeric = new ossimNumericProperty(name,
+                    ossimString::toString(thecenter_x));
+            numeric->setNumericType(ossimNumericProperty::ossimNumericPropertyType_FLOAT64);
+            numeric->setCacheRefreshBit();
+            return numeric;
+    }
+	else if(name == "center_y")
+    {
+            ossimNumericProperty* numeric = new ossimNumericProperty(name,
+                    ossimString::toString(thecenter_y));
+            numeric->setNumericType(ossimNumericProperty::ossimNumericPropertyType_FLOAT64);
+            numeric->setCacheRefreshBit();
+            return numeric;
+    }
+	else if(name == "M")
+	{
+		ossimNumericProperty* numeric = new ossimNumericProperty(name,
+        ossimString::toString(theM));
+        numeric->setNumericType(ossimNumericProperty::ossimNumericPropertyType_FLOAT64);
+        numeric->setCacheRefreshBit();
+        return numeric;
+	}
+	return ossimImageSourceFilter::getProperty(name);
+}
+
+void ossimOpenCVLogPolarFilter::getPropertyNames(std::vector<ossimString>& propertyNames)const
+{
+	ossimImageSourceFilter::getPropertyNames(propertyNames);
+	propertyNames.push_back("center_x");
+	propertyNames.push_back("center_y");
+	propertyNames.push_back("M");
 }
