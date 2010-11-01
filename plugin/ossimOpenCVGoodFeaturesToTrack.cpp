@@ -28,6 +28,7 @@
 #include <ossim/imaging/ossimImageSourceFactoryRegistry.h>
 #include <ossim/imaging/ossimAnnotationPolyObject.h>
 #include <ossim/base/ossimRefPtr.h>
+#include <ossim/base/ossimNumericProperty.h>
 
 RTTI_DEF1(ossimOpenCVGoodFeaturesToTrack, "ossimOpenCVGoodFeaturesToTrack", ossimImageSourceFilter)
 
@@ -213,3 +214,87 @@ void ossimOpenCVGoodFeaturesToTrack::runUcharTransformation(ossimImageData* tile
 	theTile->validate(); 
 }
 
+void ossimOpenCVGoodFeaturesToTrack::setProperty(ossimRefPtr<ossimProperty> property)
+{
+	if(!property) return;
+    ossimString name = property->getName();
+
+    if(name == "quality_level")
+    {
+            theQualityLevel = property->valueToString().toDouble();
+    }
+	else if(name == "min_distance")
+    {
+            theMinDistance = property->valueToString().toDouble();
+    }
+	else if(name == "block_size")
+    {
+            theBlockSize = property->valueToString().toInt();
+    }
+	else if(name == "use_harris")
+    {
+            theHarrisFlag = property->valueToString().toInt();
+    }
+	else if(name == "k")
+    {
+            theHarrisFreeParameter = property->valueToString().toDouble();
+    }
+	else
+	{
+	  ossimImageSourceFilter::setProperty(property);
+	}
+}
+
+ossimRefPtr<ossimProperty> ossimOpenCVGoodFeaturesToTrack::getProperty(const ossimString& name)const
+{
+	if(name == "quality_level")
+    {
+            ossimNumericProperty* numeric = new ossimNumericProperty(name,
+                    ossimString::toString(theQualityLevel));
+            numeric->setNumericType(ossimNumericProperty::ossimNumericPropertyType_FLOAT64);
+            numeric->setCacheRefreshBit();
+            return numeric;
+    }
+	else if(name == "min_distance")
+    {
+            ossimNumericProperty* numeric = new ossimNumericProperty(name,
+                    ossimString::toString(theMinDistance));
+            numeric->setNumericType(ossimNumericProperty::ossimNumericPropertyType_FLOAT64);
+            numeric->setCacheRefreshBit();
+            return numeric;
+    }
+	else if(name == "block_size")
+    {
+            ossimNumericProperty* numeric = new ossimNumericProperty(name,
+                    ossimString::toString(theBlockSize),3,7);
+			//TODO: The block size can only be 3,5,7.
+            numeric->setCacheRefreshBit();
+            return numeric;
+    }
+	else if(name == "use_harris")
+    {
+            ossimNumericProperty* numeric = new ossimNumericProperty(name,
+                    ossimString::toString(theHarrisFlag),0,1);
+            numeric->setCacheRefreshBit();
+            return numeric;
+    }
+	else if(name == "k")
+    {
+            ossimNumericProperty* numeric = new ossimNumericProperty(name,
+                    ossimString::toString(theHarrisFreeParameter));
+			numeric->setNumericType(ossimNumericProperty::ossimNumericPropertyType_FLOAT64);
+            numeric->setCacheRefreshBit();
+            return numeric;
+    }
+    return ossimImageSourceFilter::getProperty(name);
+}
+
+void ossimOpenCVGoodFeaturesToTrack::getPropertyNames(std::vector<ossimString>& propertyNames)const
+{
+	ossimImageSourceFilter::getPropertyNames(propertyNames);
+	propertyNames.push_back("quality_level");
+	propertyNames.push_back("min_distance");
+	propertyNames.push_back("block_size");
+	propertyNames.push_back("use_harris");
+	propertyNames.push_back("k");
+}
