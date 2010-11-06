@@ -26,6 +26,7 @@
 #include "ossimOpenCVLaplaceFilter.h"
 #include "ossimOpenCVGoodFeaturesToTrack.h"
 #include "ossimOpenCVSURFFeatures.h"
+#include "ossimOpenCVStarFeatures.h"
 #include "ossimOpenCVPyrSegmentation.h"
 #include "ossimOpenCVPyrSegmentation.h"
 #include "ossimOpenCVPluginFactory.h"
@@ -101,6 +102,10 @@ ossimObject* ossimOpenCVPluginFactory::createObject(const ossimString& name)cons
    {
 	   return new ossimOpenCVSURFFeatures;
    }
+   else if(name == STATIC_TYPE_NAME(ossimOpenCVStarFeatures))
+   {
+	   return new ossimOpenCVStarFeatures;
+   }
    //TODO: Add option to create LogPolarFilter
    return NULL;
 }
@@ -161,6 +166,7 @@ void ossimOpenCVPluginFactory::getTypeNameList(std::vector<ossimString>& typeLis
    typeList.push_back(STATIC_TYPE_NAME(ossimOpenCVLaplaceFilter));
    typeList.push_back(STATIC_TYPE_NAME(ossimOpenCVGoodFeaturesToTrack));
    typeList.push_back(STATIC_TYPE_NAME(ossimOpenCVSURFFeatures));
+   typeList.push_back(STATIC_TYPE_NAME(ossimOpenCVStarFeatures));
    typeList.push_back(STATIC_TYPE_NAME(ossimOpenCVPyrSegmentation));
 
 }
