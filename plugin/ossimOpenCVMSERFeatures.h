@@ -58,7 +58,7 @@ public:
    virtual void getPropertyNames(std::vector<ossimString>& propertyNames)const;
 
 
-   std::vector<std::vector<ossimDpt>> theContours;
+   std::vector<std::vector<ossimDpt> > theContours;
 
 protected:
    ossimRefPtr<ossimImageData> theTile;

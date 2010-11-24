@@ -216,28 +216,28 @@ void ossimOpenCVSmoothFilter::runUcharTransformation(ossimImageData* tile)
 
 void ossimOpenCVSmoothFilter::setSmoothType(const ossimString lookup)
 {
-	if(strcmp(lookup,"CV_BLUR_NO_SCALE")==0){
+        if(strcmp(lookup,"CV_BLUR_NO_SCALE")==0){
 		theSmoothType=0; 		
-	        printf("Read from spec file. smooth_type: %s\n",lookup);
+                printf("Read from spec file. smooth_type: %s\n",lookup.c_str());
 	}
-	else if(strcmp(lookup,"CV_BLUR")==0){
+        else if(strcmp(lookup,"CV_BLUR")==0){
 		theSmoothType=1; 		
-	        printf("Read from spec file. smooth_type: %s\n",lookup);
+                printf("Read from spec file. smooth_type: %s\n",lookup.c_str());
 	}
-	else if(strcmp(lookup,"CV_GAUSSIAN")==0){
+        else if(strcmp(lookup,"CV_GAUSSIAN")==0){
 		theSmoothType=2; 		
-	        printf("Read from spec file. smooth_type: %s\n",lookup);
+                printf("Read from spec file. smooth_type: %s\n",lookup.c_str());
 	}
-	else if(strcmp(lookup,"CV_MEDIAN")==0){
+        else if(strcmp(lookup,"CV_MEDIAN")==0){
 		theSmoothType=3; 		
-	        printf("Read from spec file. smooth_type: %s\n",lookup);
+                printf("Read from spec file. smooth_type: %s\n",lookup.c_str());
 	}
-	else if(strcmp(lookup,"CV_BILATERAL")==0){
+        else if(strcmp(lookup,"CV_BILATERAL")==0){
 		theSmoothType=4; 		
-        	printf("Read from spec file. smooth_type: %s\n",lookup);
+                printf("Read from spec file. smooth_type: %s\n",lookup.c_str());
 	}
 	else {
-		printf("%s not supported as smooth_type parameter for OpenCVSmoothFilter!\nDefault smooth_type: CV_GAUSSIAN\n",lookup);
+                printf("%s not supported as smooth_type parameter for OpenCVSmoothFilter!\nDefault smooth_type: CV_GAUSSIAN\n",lookup.c_str());
 	}	
 }
 
