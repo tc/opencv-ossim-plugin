@@ -175,7 +175,7 @@ void ossimOpenCVThresholdFilter::setThresholdtype(const ossimString& lookup)
 			theThresholdType=8; 		
 		}
 		else {
-			printf("%s not supported as threshold_type parameter for OpenCVThresholdFilter!\nDefault threshold_type: CV_THRESH_BINARY\n",lookup);
+                        printf("%s not supported as threshold_type parameter for OpenCVThresholdFilter!\nDefault threshold_type: CV_THRESH_BINARY\n",lookup.c_str());
 		}
 	}
 }

@@ -184,7 +184,7 @@ void ossimOpenCVMSERFeatures::runUcharTransformation(ossimImageData* tile)
 	//MSER Usage sample from OpenCV source
 	CvMSERParams params = cvMSERParams();//cvMSERParams( 5, 60, cvRound(.2*img->width*img->height), .25, .2 );
 	cvExtractMSER( hsv, NULL, &contours, storage, params );
-	t = cvGetTickCount() - t;
+        //t = cvGetTickCount() - t;
 
 	uchar* rsptr = (uchar*)input->imageData;
 	// draw mser with different color
